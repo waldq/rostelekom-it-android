@@ -23,7 +23,7 @@ enum class AccountStatus {
 data class AccountDto(
     val id: String, // UUID на самом деле, просто в мобилке оно вряд ли будет использоваться
     val number: String,
-    val balance: BigDecimal, // TODO либо написать сериализатор, либо заменить на строку
+    val balance: String, // TODO либо написать сериализатор, либо заменить на строку
     val currency: String,
     val status: AccountStatus
 )
@@ -35,4 +35,4 @@ data class AccountDto(
  * Body запроса на сервер `/api/billing/payments`
  */
 @Serializable
-data class CreatePaymentDto(val amount: BigDecimal) // TODO то же самое
+data class CreatePaymentDto(val amount: String) // TODO то же самое
