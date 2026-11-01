@@ -19,6 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -56,6 +58,7 @@ import dev.waldq.rostelekom.validation.*
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier) {
     var phone by rememberSaveable { mutableStateOf("") }
+    val isPhoneValid = validatePhone(phone)
 
     Box(modifier
         .fillMaxSize()
@@ -67,8 +70,10 @@ fun LoginScreen(modifier: Modifier = Modifier) {
             LoginForm(
                 phone = phone,
                 onPhoneChange = { phone = filterPhone(it) },
-                isButtonEnabled = validatePhone(phone) == null,
+                error = null, // TODO
+                isButtonEnabled = isPhoneValid == null,
                 onSubmit = {},
+                isLoading = false,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -149,6 +154,7 @@ private fun LoginHeader(modifier: Modifier = Modifier) {
     }
 }
 
+// TODO вынести отдельно как object
 /**
  * Класс для приведения вводимого номера телефона к формату (xxx) xxx-xx-xx
  */
@@ -210,9 +216,9 @@ class PhoneVisualTransformation : VisualTransformation {
 private fun PhoneOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    error: String?,
     modifier: Modifier = Modifier,
 ) {
-    // TODO доделать форматирование при отображении
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -220,6 +226,8 @@ private fun PhoneOutlinedTextField(
         label = { Text("Номер телефона") },
         placeholder = { Text("(999) 123-45-67") },
         prefix = { Text("+7 ") }, // TODO подумать, делать префикс того же цвета, что и сам номер, или нет
+        supportingText = if (error != null) { { Text(error) } } else { null },
+        isError = error != null,
         visualTransformation = PhoneVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
         shape = RoundedCornerShape(10.dp),
@@ -233,8 +241,10 @@ private fun PhoneOutlinedTextField(
 private fun LoginForm(
     phone: String,
     onPhoneChange: (String) -> Unit,
+    error: String?,
     isButtonEnabled: Boolean,
     onSubmit: () -> Unit,
+    isLoading: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Surface( // белый блок с закруглёнными углами
@@ -266,6 +276,7 @@ private fun LoginForm(
                 value = phone,
                 onValueChange = onPhoneChange,
                 modifier = Modifier.fillMaxWidth(),
+                error = error,
             )
             Spacer(Modifier.weight(1f))
             // кнопка ввода. Активна, когда номер корректный. TODO
@@ -281,9 +292,18 @@ private fun LoginForm(
                     disabledContentColor = ButtonTextDisabledGray,
                 ),
             ) {
-                Text(
-                    text = "Получить код",
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = LocalContentColor.current,
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Text(
+                        text = "Получить код",
+                    )
+                }
+
             }
         }
     }
