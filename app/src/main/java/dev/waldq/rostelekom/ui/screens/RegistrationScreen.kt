@@ -67,6 +67,8 @@ fun LoginScreen(modifier: Modifier = Modifier) {
             LoginForm(
                 phone = phone,
                 onPhoneChange = { phone = filterPhone(it) },
+                isButtonEnabled = validatePhone(phone) == null,
+                onSubmit = {},
                 modifier = Modifier.weight(1f),
             )
         }
@@ -231,6 +233,8 @@ private fun PhoneOutlinedTextField(
 private fun LoginForm(
     phone: String,
     onPhoneChange: (String) -> Unit,
+    isButtonEnabled: Boolean,
+    onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface( // белый блок с закруглёнными углами
@@ -266,9 +270,11 @@ private fun LoginForm(
             Spacer(Modifier.weight(1f))
             // кнопка ввода. Активна, когда номер корректный. TODO
             Button(
-                onClick = {},
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                enabled = false,
+                onClick = onSubmit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                enabled = isButtonEnabled,
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
                     disabledContainerColor = ButtonContainerDisabledGray,
