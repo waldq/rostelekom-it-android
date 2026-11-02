@@ -1,4 +1,4 @@
-package dev.waldq.rostelekom.ui.screens
+package dev.waldq.rostelekom.ui.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,16 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import dev.waldq.rostelekom.ui.components.PhoneVisualTransformation
 import dev.waldq.rostelekom.ui.theme.*
 import dev.waldq.rostelekom.validation.*
 
@@ -154,57 +150,6 @@ private fun LoginHeader(modifier: Modifier = Modifier) {
     }
 }
 
-// TODO вынести отдельно как object
-/**
- * Класс для приведения вводимого номера телефона к формату (xxx) xxx-xx-xx
- */
-class PhoneVisualTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val digits = text.text.take(10)
-
-        val formatted = buildString {
-            digits.forEachIndexed { i, c ->
-                when (i) {
-                    0 -> append("(")
-                    3 -> append(") ")
-                    6, 8 -> append("-")
-                }
-                append(c)
-            }
-        }
-
-        val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                val o = offset.coerceIn(0, digits.length)
-                val extra = when {
-                    o == 0 -> 0
-                    o <= 3 -> 1
-                    o <= 6 -> 3
-                    o <= 8 -> 4
-                    else -> 5
-                }
-                return o + extra
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                val o = when {
-                    offset <= 1 -> 0
-                    offset <= 4 -> offset - 1
-                    offset <= 6 -> 3
-                    offset <= 9 -> offset - 3
-                    offset == 10 -> 6
-                    offset <= 12 -> offset - 4
-                    offset == 13 -> 8
-                    else -> offset - 5
-                }
-                return o.coerceIn(0, digits.length)
-            }
-        }
-
-        return TransformedText(AnnotatedString(formatted), offsetMapping)
-    }
-}
-
 /**
  * Поле ввода номера.
  *
@@ -228,7 +173,7 @@ private fun PhoneOutlinedTextField(
         prefix = { Text("+7 ") }, // TODO подумать, делать префикс того же цвета, что и сам номер, или нет
         supportingText = if (error != null) { { Text(error) } } else { null },
         isError = error != null,
-        visualTransformation = PhoneVisualTransformation(),
+        visualTransformation = PhoneVisualTransformation,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
         shape = RoundedCornerShape(10.dp),
     )
@@ -317,3 +262,71 @@ private fun LoginScreenPreview() {
         LoginScreen()
     }
 }
+
+// превью при пустом поле номера
+@Preview(showBackground = true, widthDp = 360, name = "Пусто")
+@Composable
+private fun LoginFormEmptyPreview() {
+    RostelekomitandroidTheme {
+        LoginForm(
+            phone = "",
+            onPhoneChange = {},
+            error = null,
+            isButtonEnabled = false,
+            onSubmit = {},
+            isLoading = false,
+            modifier = Modifier.height(500.dp),
+        )
+    }
+}
+
+// превью с введённым номером
+@Preview(showBackground = true, widthDp = 360, name = "Номер введён")
+@Composable
+private fun LoginFormNumberFilled() {
+    RostelekomitandroidTheme {
+        LoginForm(
+            phone = "9991234567",
+            onPhoneChange = {},
+            error = null,
+            isButtonEnabled = true,
+            onSubmit = {},
+            isLoading = false,
+            modifier = Modifier.height(500.dp),
+        )
+    }
+}
+
+// превью в состоянии загрузки (ожидания ответа сервера)
+@Preview(showBackground = true, widthDp = 360, name = "Загрузка")
+@Composable
+private fun LoginFormLoadingPreview() {
+    RostelekomitandroidTheme {
+        LoginForm(
+            phone = "9991234567",
+            onPhoneChange = {},
+            error = null,
+            isButtonEnabled = true,
+            onSubmit = {},
+            isLoading = true,
+            modifier = Modifier.height(500.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, name = "Ошибка")
+@Composable
+private fun LoginFormErrorPreview() {
+    RostelekomitandroidTheme {
+        LoginForm(
+            phone = "9991234567",
+            onPhoneChange = {},
+            error = "Код уже отправлен, повторите через 52 с",
+            isButtonEnabled = false,
+            onSubmit = {},
+            isLoading = false,
+            modifier = Modifier.height(500.dp),
+        )
+    }
+}
+
