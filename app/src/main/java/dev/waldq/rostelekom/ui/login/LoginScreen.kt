@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,6 +39,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.waldq.rostelekom.di.AppContainer
+import dev.waldq.rostelekom.models.OtpChallengeDto
 import dev.waldq.rostelekom.ui.components.PhoneVisualTransformation
 import dev.waldq.rostelekom.ui.theme.*
 import dev.waldq.rostelekom.validation.*
@@ -52,9 +57,13 @@ import dev.waldq.rostelekom.validation.*
  * Визуально экран делится на верхнюю часть (шапку [LoginHeader]) и нижнюю (форму [LoginForm]).
  */
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
-    var phone by rememberSaveable { mutableStateOf("") }
-    val isPhoneValid = validatePhone(phone)
+fun LoginScreen(
+    uiState: LoginUiState,
+    onPhoneChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val phone = uiState.phone
 
     Box(modifier
         .fillMaxSize()
@@ -63,17 +72,42 @@ fun LoginScreen(modifier: Modifier = Modifier) {
         Column(Modifier.fillMaxSize()
         ) {
             LoginHeader(Modifier.fillMaxWidth())
-            LoginForm(
+            LoginForm( // экран и форма сами ничего не хранят и не обновляют
                 phone = phone,
-                onPhoneChange = { phone = filterPhone(it) },
-                error = null, // TODO
-                isButtonEnabled = isPhoneValid == null,
-                onSubmit = {},
-                isLoading = false,
+                onPhoneChange = onPhoneChange,
+                error = uiState.error,
+                buttonText = uiState.buttonText,
+                isButtonEnabled = uiState.isButtonEnabled,
+                onSubmit = onSubmit,
+                isLoading = uiState.isLoading,
                 modifier = Modifier.weight(1f),
             )
         }
     }
+}
+
+/**
+ * Функция, отвечающая за связь экрана с ViewModel.
+ */
+@Composable
+fun LoginRoute(
+    onCodeSent: (phone: String, challenge: OtpChallengeDto) -> Unit,  // это вызов из навигации, тут переходим на экран ввода кода
+    viewModel: LoginViewModel = viewModel { LoginViewModel(AppContainer.authRepository) },
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // выполняется, когда изменилось состояние challenge (пришёл ответ в частности)
+    LaunchedEffect(uiState.challenge) {
+        val challenge = uiState.challenge ?: return@LaunchedEffect
+        onCodeSent(uiState.phone, challenge)
+        viewModel.onCodeSentHandled()
+    }
+
+    LoginScreen(
+        uiState = uiState,
+        onPhoneChange = viewModel::onPhoneChange,
+        onSubmit = viewModel::onSubmit,
+    )
 }
 
 /**
@@ -188,6 +222,7 @@ private fun LoginForm(
     onPhoneChange: (String) -> Unit,
     error: String?,
     isButtonEnabled: Boolean,
+    buttonText: String,
     onSubmit: () -> Unit,
     isLoading: Boolean,
     modifier: Modifier = Modifier,
@@ -245,7 +280,7 @@ private fun LoginForm(
                     )
                 } else {
                     Text(
-                        text = "Получить код",
+                        text = buttonText,
                     )
                 }
 
@@ -259,7 +294,11 @@ private fun LoginForm(
 @Composable
 private fun LoginScreenPreview() {
     RostelekomitandroidTheme {
-        LoginScreen()
+        LoginScreen(
+            uiState = LoginUiState(),
+            onPhoneChange = {},
+            onSubmit = {}
+        )
     }
 }
 
@@ -273,6 +312,7 @@ private fun LoginFormEmptyPreview() {
             onPhoneChange = {},
             error = null,
             isButtonEnabled = false,
+            buttonText = "Получить код",
             onSubmit = {},
             isLoading = false,
             modifier = Modifier.height(500.dp),
@@ -290,6 +330,7 @@ private fun LoginFormNumberFilled() {
             onPhoneChange = {},
             error = null,
             isButtonEnabled = true,
+            buttonText = "Получить код",
             onSubmit = {},
             isLoading = false,
             modifier = Modifier.height(500.dp),
@@ -307,6 +348,7 @@ private fun LoginFormLoadingPreview() {
             onPhoneChange = {},
             error = null,
             isButtonEnabled = true,
+            buttonText = "Получить код",
             onSubmit = {},
             isLoading = true,
             modifier = Modifier.height(500.dp),
@@ -314,6 +356,7 @@ private fun LoginFormLoadingPreview() {
     }
 }
 
+// превью в состоянии ошибки
 @Preview(showBackground = true, widthDp = 360, name = "Ошибка")
 @Composable
 private fun LoginFormErrorPreview() {
@@ -321,8 +364,27 @@ private fun LoginFormErrorPreview() {
         LoginForm(
             phone = "9991234567",
             onPhoneChange = {},
-            error = "Код уже отправлен, повторите через 52 с",
+            error = "Сервис пользователей временно недоступен, попробуйте позже.",
             isButtonEnabled = false,
+            buttonText = "Получить код",
+            onSubmit = {},
+            isLoading = false,
+            modifier = Modifier.height(500.dp),
+        )
+    }
+}
+
+// превью с таймером на кнопке
+@Preview(showBackground = true, widthDp = 360, name = "Таймер")
+@Composable
+private fun LoginFormTimerPreview() {
+    RostelekomitandroidTheme {
+        LoginForm(
+            phone = "9991234567",
+            onPhoneChange = {},
+            error = null,
+            isButtonEnabled = false,
+            buttonText = "Повторить через 0:42",
             onSubmit = {},
             isLoading = false,
             modifier = Modifier.height(500.dp),
