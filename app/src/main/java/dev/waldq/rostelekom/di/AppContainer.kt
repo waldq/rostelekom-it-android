@@ -1,7 +1,7 @@
 package dev.waldq.rostelekom.di
 
-import dev.waldq.rostelekom.data.repository.FakeAuthRepository
 import dev.waldq.rostelekom.data.repository.AuthRepository
+import dev.waldq.rostelekom.data.repository.FakeAuthRepository
 
 // Здесь создаются и хранятся все репозитории.
 object AppContainer {

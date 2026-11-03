@@ -12,16 +12,7 @@ object PhoneVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val digits = text.text.take(10)
 
-        val formatted = buildString {
-            digits.forEachIndexed { i, c ->
-                when (i) {
-                    0 -> append("(")
-                    3 -> append(") ")
-                    6, 8 -> append("-")
-                }
-                append(c)
-            }
-        }
+        val formatted = formatPhoneForDisplay(digits)
 
         val offsetMapping = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int {
@@ -53,4 +44,24 @@ object PhoneVisualTransformation : VisualTransformation {
 
         return TransformedText(AnnotatedString(formatted), offsetMapping)
     }
+}
+
+/**
+ * Фукнция, которая приводит номер вида `9991234567` к `(999) 123-45-67`
+ *
+ * Сама по себе длину никак не обрабатывает, поэтому передавать сюда нужно только 10 цифр.
+ */
+fun formatPhoneForDisplay(digits: String): String {
+    val formatted = buildString {
+        digits.forEachIndexed { i, c ->
+            when (i) {
+                0 -> append("(")
+                3 -> append(") ")
+                6, 8 -> append("-")
+            }
+            append(c)
+        }
+    }
+
+    return formatted
 }

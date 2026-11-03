@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.waldq.rostelekom.data.repository.ApiException
 import dev.waldq.rostelekom.data.repository.AuthRepository
-import dev.waldq.rostelekom.validation.filterPhone
 import dev.waldq.rostelekom.models.OtpChallengeDto
+import dev.waldq.rostelekom.validation.filterPhone
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,9 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-class LoginViewModel(
-    private val repository: AuthRepository,
-) : ViewModel() {
+class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow() // снаружи только неизменяемое состояние
 

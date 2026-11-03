@@ -1,6 +1,9 @@
 package dev.waldq.rostelekom.data.repository
 
-import dev.waldq.rostelekom.models.*
+import dev.waldq.rostelekom.models.OtpChallengeDto
+import dev.waldq.rostelekom.models.OtpRequestDto
+import dev.waldq.rostelekom.models.OtpVerifyDto
+import dev.waldq.rostelekom.models.TokenPairDto
 
 /**
  * Интерфейс репозитория, работающий с запросами на авторизацию.

@@ -28,9 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,16 +41,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.models.OtpChallengeDto
 import dev.waldq.rostelekom.ui.components.PhoneVisualTransformation
-import dev.waldq.rostelekom.ui.theme.*
-import dev.waldq.rostelekom.validation.*
+import dev.waldq.rostelekom.ui.theme.ButtonContainerDisabledGray
+import dev.waldq.rostelekom.ui.theme.ButtonTextDisabledGray
+import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
 
 /**
- * Входная функция экрана логина.
- *
- * Её нужно будет оборачивать в нашу тему, как, в целом, и остальные экраны.
- *
- * Ничего передавать сюда не нужно.
- *
  * Визуально экран делится на верхнюю часть (шапку [LoginHeader]) и нижнюю (форму [LoginForm]).
  */
 @Composable
@@ -63,8 +55,6 @@ fun LoginScreen(
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val phone = uiState.phone
-
     Box(modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.primary)
@@ -73,7 +63,7 @@ fun LoginScreen(
         ) {
             LoginHeader(Modifier.fillMaxWidth())
             LoginForm( // экран и форма сами ничего не хранят и не обновляют
-                phone = phone,
+                phone = uiState.phone,
                 onPhoneChange = onPhoneChange,
                 error = uiState.error,
                 buttonText = uiState.buttonText,
@@ -236,21 +226,27 @@ private fun LoginForm(
             .navigationBarsPadding()
             .imePadding()
             .padding(20.dp)) {
+
             Spacer(Modifier.height(8.dp))
+
             // заголовок
             Text(
                 text = "Вход в личный кабинет",
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleLarge,
             )
+
             Spacer(Modifier.height(6.dp))
+
             // ну ты понял
             Text(
                 text = "Введите номер телефона, привязанный к лицевому счёту",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
+
             Spacer(Modifier.height(24.dp))
+
             // поле ввода
             PhoneOutlinedTextField(
                 value = phone,
@@ -258,8 +254,10 @@ private fun LoginForm(
                 modifier = Modifier.fillMaxWidth(),
                 error = error,
             )
+
             Spacer(Modifier.weight(1f))
-            // кнопка ввода. Активна, когда номер корректный. TODO
+
+            // кнопка ввода. Активна, когда номер корректный.
             Button(
                 onClick = onSubmit,
                 modifier = Modifier
@@ -283,7 +281,6 @@ private fun LoginForm(
                         text = buttonText,
                     )
                 }
-
             }
         }
     }
@@ -365,7 +362,7 @@ private fun LoginFormErrorPreview() {
             phone = "9991234567",
             onPhoneChange = {},
             error = "Сервис пользователей временно недоступен, попробуйте позже.",
-            isButtonEnabled = false,
+            isButtonEnabled = true,
             buttonText = "Получить код",
             onSubmit = {},
             isLoading = false,

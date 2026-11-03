@@ -1,8 +1,6 @@
 package dev.waldq.rostelekom.models
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import java.math.BigDecimal
 
 // TODO
 enum class AccountStatus {

@@ -1,7 +1,7 @@
 package dev.waldq.rostelekom.validation
 
 private const val RU_NATIONAL_LENGTH = 10
-private const val CODE_LENGTH = 6
+const val CODE_LENGTH = 6
 
 enum class FieldError {
     EMPTY,
