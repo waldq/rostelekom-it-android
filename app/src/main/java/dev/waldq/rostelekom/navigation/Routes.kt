@@ -9,3 +9,5 @@ import kotlinx.serialization.Serializable
     val resendAfterSeconds: Long = 60
 )
 @Serializable object Home
+
+@Serializable object Profile
