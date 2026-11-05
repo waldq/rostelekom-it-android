@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.models.AccountStatus
 import dev.waldq.rostelekom.ui.components.AmountVisualTransformation
 import dev.waldq.rostelekom.ui.login.LoginScreen
@@ -222,8 +223,40 @@ public final enum class NavBarItems(val title: String) {
 }
 
 @Composable
-fun HomeRoute(onProfile: () -> Unit) {
+fun CreateAccount(content: HomeUiState.NoAccounts) {
     val viewModel: HomeViewModel = viewModel()
+    Scaffold() { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .statusBarsPadding()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(13.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                Column {
+                    Text(
+                        text = "ЛИЧНЫЙ КАБИНЕТ",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.6.sp),
+                    )
+                    Text(
+                        text = content.greeting,
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeRoute(onProfile: () -> Unit) {
+    val viewModel: HomeViewModel = viewModel{ HomeViewModel(repository = AppContainer.userRepository) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 
@@ -234,6 +267,7 @@ fun HomeRoute(onProfile: () -> Unit) {
         is HomeUiState.Content -> HomeScreen(
             state, onProfile
         )
+        is HomeUiState.NoAccounts -> CreateAccount(state)
     }
 }
 

@@ -8,6 +8,11 @@ import dev.waldq.rostelekom.models.AccountStatus
 sealed interface HomeUiState {
     data object Loading : HomeUiState
 
+    data class NoAccounts(
+        val selectedItem: Int,
+        val greeting: String,
+    ): HomeUiState
+
     /**
      * @property greeting приветствие целиком: «Добрый день, Владимир!».
      * @property balance баланс уже строкой: «1 250,00 ₽».
@@ -20,14 +25,15 @@ sealed interface HomeUiState {
         val showDeposite: Boolean,
         val selectedItem: Int,
         val greeting: String,
-        val balance: Double,
-        val accountNumber: String,
-        val status: AccountStatus,
+        val balance: Double? = null,
+        val accountNumber: String? = null,
+        val status: AccountStatus? = null,
         val transactions: List<TransactionUi>,
     ) : HomeUiState {
         val depositeAmount: Double
-            get() = depositeValue.replace(',', '.').toDoubleOrNull() ?: 0.0
+            get() = depositeValue?.replace(',', '.')?.toDoubleOrNull() ?: 0.0
         val statusText = when (status) {
+            null -> "Не существует"
             AccountStatus.ACTIVE -> "Активен"
             AccountStatus.BLOCKED -> "Заблокирован"
             AccountStatus.CLOSED -> "Закрыт"

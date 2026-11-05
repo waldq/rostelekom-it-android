@@ -1,5 +1,7 @@
 package dev.waldq.rostelekom.models
 
+import dev.waldq.rostelekom.models.serialization.BigDecimalSerializer
+import dev.waldq.rostelekom.models.serialization.Money
 import kotlinx.serialization.Serializable
 
 // TODO
@@ -26,6 +28,31 @@ data class AccountDto(
     val status: AccountStatus
 )
 
+@Serializable
+data class PagedModel<T>(
+    val content: List<T>,
+    val page: PageMetadata
+)
+
+@Serializable
+data class PageMetadata(
+    val size: Long,
+    val number: Long,
+    val totalElements: Long,
+    val totalPages: Long
+)
+
+@Serializable
+data class TransactionDto(
+    val id: String,                    // UUID → строка
+    val type: TransactionType,
+    val amount: Money,
+    val balanceAfter: Money,
+    val description: String? = null,
+    val paymentId: String? = null,     // UUID? → String?
+    val createdAt: String              // Instant → ISO-8601 строка
+)
+
 enum class PaymentStatus {
     PENDING,         // создан, ждём оплату
     SUCCEEDED,       // деньги зачислены
@@ -47,16 +74,6 @@ enum class TransactionType {
 }
 
 
-@Serializable
-data class TransactionDto(
-    val id: String,
-    val type: TransactionType,
-    val amount: Double,
-    val balanceAfter: Double,
-    val description: String? = null,
-    val paymentId: String? = null,
-    val createdAt: String,
-)
 
 /** Служебная часть страницы: Spring кладёт её во вложенный объект `page`. */
 @Serializable

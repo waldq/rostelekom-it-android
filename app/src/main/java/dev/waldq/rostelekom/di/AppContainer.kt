@@ -6,6 +6,8 @@ import dev.waldq.rostelekom.data.local.TokenStorage
 import dev.waldq.rostelekom.data.remote.ApiClient
 import dev.waldq.rostelekom.data.repository.AuthApi
 import dev.waldq.rostelekom.data.repository.RemoteAuthRepository
+import dev.waldq.rostelekom.data.repository.RemoteUserRepository
+import dev.waldq.rostelekom.data.repository.UserApi
 
 // Здесь создаются и хранятся все репозитории.
 object AppContainer {
@@ -20,4 +22,7 @@ object AppContainer {
         RemoteAuthRepository(api = ApiClient.create<AuthApi>(), tokenStorage = tokenStorage)
     }
 
+    val userRepository: UserApi by lazy {
+        RemoteUserRepository(api = ApiClient.create<UserApi>())
+    }
 }
