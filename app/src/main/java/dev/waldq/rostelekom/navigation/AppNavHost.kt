@@ -83,11 +83,19 @@ fun AppNavHost(
         }
 
         composable<Home> {
-            HomeRoute {
-                navController.navigate(route = Profile) {
-                    popUpTo(navController.graph.id) { inclusive = true }
-                }
-            }
+            HomeRoute (
+                onProfile = {
+                    navController.navigate(route = Profile) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                },
+                onSessionExpired = {
+                    scope.launch {
+                        AppContainer.tokenStorage.clear()
+                        navController.navigate(Login) { popUpTo(navController.graph.id) { inclusive = true } }
+                    }
+                },
+            )
         }
 
         composable <Profile> {

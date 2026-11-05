@@ -23,7 +23,7 @@ enum class AccountStatus {
 data class AccountDto(
     val id: String, // UUID на самом деле, просто в мобилке оно вряд ли будет использоваться
     val number: String,
-    val balance: String, // TODO либо написать сериализатор, либо заменить на строку
+    val balance: Money, // TODO либо написать сериализатор, либо заменить на строку
     val currency: String,
     val status: AccountStatus
 )

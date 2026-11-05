@@ -17,7 +17,7 @@ class RemoteUserRepository(private val api: UserApi) : UserApi {
 
 
     override suspend fun getMyAccount(): AccountDto =
-        api.getMyAccount() // без проверки, чтобы проверить в ViewModel
+        safeApiCall { api.getMyAccount() }
 
     override suspend fun getMyTransactions(): PagedModel<TransactionDto> =
         safeApiCall { api.getMyTransactions() }

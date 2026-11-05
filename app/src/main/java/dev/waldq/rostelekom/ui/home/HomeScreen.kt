@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.models.AccountStatus
 import dev.waldq.rostelekom.ui.components.AmountVisualTransformation
+import dev.waldq.rostelekom.ui.home.HomeViewModel
 import dev.waldq.rostelekom.ui.theme.BalanceGradient
 import dev.waldq.rostelekom.ui.theme.Green
 import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
@@ -214,10 +218,92 @@ public final enum class NavBarItems(val title: String) {
     PROFILE("Профиль"),
 }
 
+/**
+ * Экран «У вас пока нет лицевого счёта». Показывается, когда бэк на запрос счёта ответил 404.
+ * Состояния внутри нет, только вёрстка.
+ *
+ * @param onOpenAccount кнопка «Открыть счёт» (запрос `POST api/billing/accounts`).
+ */
 @Composable
-fun CreateAccount(content: HomeUiState.NoAccounts) {
-    val viewModel: HomeViewModel = viewModel()
-    Scaffold() { innerPadding ->
+fun NoAccountScreen(
+    onOpenAccount: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .padding(16.dp),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp, // иначе Material подмешает в белый фиолетовый оттенок
+            shadowElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 48.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                // квадрат со знаком рубля
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(20.dp),
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "₽",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontSize = 34.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        ),
+                    )
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                Text(
+                    text = "У вас пока нет лицевого счёта",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center,
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Откройте его, чтобы пополнять баланс и смотреть историю операций.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                Button(
+                    onClick = onOpenAccount,
+                    modifier = Modifier.height(52.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 28.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                ) {
+                    Text("Открыть счёт")
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun CreateAccount(content: HomeUiState.NoAccounts, viewModel: HomeViewModel) {
+   Scaffold() { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -242,12 +328,14 @@ fun CreateAccount(content: HomeUiState.NoAccounts) {
                     )
                 }
             }
+            item{ NoAccountScreen(viewModel::createAccount) }
+
         }
     }
 }
 
 @Composable
-fun HomeRoute(onProfile: () -> Unit) {
+fun HomeRoute(onProfile: () -> Unit, onSessionExpired: () -> Unit) {
     val viewModel: HomeViewModel = viewModel{ HomeViewModel(repository = AppContainer.userRepository) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -259,7 +347,9 @@ fun HomeRoute(onProfile: () -> Unit) {
         is HomeUiState.Content -> HomeScreen(
             state, onProfile
         )
-        is HomeUiState.NoAccounts -> CreateAccount(state)
+        is HomeUiState.NoAccounts -> CreateAccount(state, viewModel)
+        is HomeUiState.SessionExpired -> LaunchedEffect(Unit) { onSessionExpired() }
+        is HomeUiState.Error -> Text(state.message)   // потом сделать нормальный экран
     }
 }
 

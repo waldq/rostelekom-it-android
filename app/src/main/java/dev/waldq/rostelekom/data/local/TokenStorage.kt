@@ -22,6 +22,8 @@ class TokenStorage(private val context: Context) {
         }
     }
 
+    suspend fun getAccessToken(): String? = context.tokenDataStore.data.first()[ACCESS]
+
     suspend fun clear() {
         context.tokenDataStore.edit { it.clear() }
     }

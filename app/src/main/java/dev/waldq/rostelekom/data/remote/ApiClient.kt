@@ -25,9 +25,17 @@ object ApiClient {
         ignoreUnknownKeys = true // бэк может прислать поля, которых нет в наших DTO
     }
 
+    @Volatile
+    var accessTokenProvider: () -> String? = { null }
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS).
+        addInterceptor { chain ->
+            val token = accessTokenProvider()
+            val request = if (token == null) chain.request()
+            else chain.request().newBuilder().header("Authorization", "Bearer $token").build()
+            chain.proceed(request)
+        }
         // TODO оставить только в debug: на уровне BODY в логи попадают телефоны и токены
         .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
         // TODO когда появятся токены: addInterceptor, который добавляет заголовок Authorization

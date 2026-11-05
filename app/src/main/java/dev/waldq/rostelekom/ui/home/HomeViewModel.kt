@@ -3,19 +3,14 @@ package dev.waldq.rostelekom.ui.home
 import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.waldq.rostelekom.data.repository.ApiException
 import dev.waldq.rostelekom.data.repository.UserApi
 import dev.waldq.rostelekom.models.AccountStatus
 import dev.waldq.rostelekom.models.TransactionType
 import dev.waldq.rostelekom.validation.allowInputPaymentAmount
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.text.NumberFormat
-import java.util.Locale
-import kotlin.time.Duration.Companion.milliseconds
 
 class HomeViewModel(
     private val repository: UserApi
@@ -32,40 +27,43 @@ class HomeViewModel(
     //  Потом здесь будут запросы /api/users/me, /api/billing/accounts/me и .../transactions
     private fun load() {
         viewModelScope.launch {
-            val user = repository.getProfile()
-            _uiState.value = HomeUiState.Content(
-                depositeValue = "0.0",
-                showDeposite = false,
-                selectedItem = 0,
-                greeting = "Добрый день, ${user.firstName}",
-                transactions = emptyList(),
-            )
-            val current = _uiState.value
             try {
-                val account  = repository.getMyAccount()
-                val transactions = repository.getMyTransactions()
-                if (current is HomeUiState.Content)
-                    _uiState.value = current.copy(
+                val user = repository.getProfile()
+                val greeting = "Добрый день, ${user.firstName}"
+                try {
+                    val account = repository.getMyAccount()
+                    val transactions = repository.getMyTransactions()
+                    _uiState.value = HomeUiState.Content(
+                        depositeValue = "",
+                        showDeposite = false,
+                        selectedItem = 0,
+                        greeting = greeting,
                         balance = account.balance.toDouble(),
                         accountNumber = "№ ${account.number.chunked(4).joinToString(" ")}",
                         status = account.status,
-                        transactions = // Можно будет использовать для истории
-                              transactions.content.map {it -> TransactionUi(
-                                  id = it.id,
-                                  title = when (it.type){
-                                      TransactionType.TOP_UP -> "Пополнение баланса"
-                                      TransactionType.CHARGE -> "Списания"
-                                      TransactionType.REFUND -> "Возварт"
-                                  },
-                                  date = it.createdAt,
-                                  amount = it.amount.toString(),
-                                  isIncome = if (it.type == TransactionType.CHARGE) false else true,
-                              ) }.take(3)
+                        transactions = transactions.content.map {
+                            TransactionUi(
+                                id = it.id,
+                                title = when (it.type) {
+                                    TransactionType.TOP_UP -> "Пополнение баланса"
+                                    TransactionType.CHARGE -> "Списание"
+                                    TransactionType.REFUND -> "Возврат"
+                                },
+                                date = it.createdAt,
+                                amount = it.amount.toPlainString(),
+                                isIncome = it.type != TransactionType.CHARGE,
+                            )
+                        }.take(3),
                     )
-            }catch (e: HttpException) {
-                val httpCode = e.code()
-                if (httpCode == 404)
-                    _uiState.value = HomeUiState.NoAccounts(selectedItem = 0, greeting = "Добрый день, ${user.firstName}")
+                } catch (e: ApiException) {
+                    if (e.statusCode == 404) {   // у нового юзера счёта ещё нет, это не ошибка
+                        _uiState.value =
+                            HomeUiState.NoAccounts(selectedItem = 0, greeting = greeting)
+                    } else throw e
+                }
+            } catch (e: ApiException) {
+                _uiState.value =
+                    if (e.statusCode == 401) HomeUiState.SessionExpired else HomeUiState.Error(e.message)
             }
 
 
@@ -77,9 +75,12 @@ class HomeViewModel(
         viewModelScope.launch {
             val account = repository.openAccount()
             val current = _uiState.value
-            if (current is HomeUiState.Content)
-                _uiState.value = current.copy(
-
+            if (current is HomeUiState.NoAccounts)
+                _uiState.value = HomeUiState.Content(
+                    depositeValue = "",
+                    showDeposite = false,
+                    selectedItem = 0,
+                    greeting = current.greeting,
                     balance = account.balance.toDouble(),
                     accountNumber = "№ ${account.number.chunked(4).joinToString(" ")}",
                     status = AccountStatus.ACTIVE,

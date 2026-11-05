@@ -8,6 +8,7 @@ import dev.waldq.rostelekom.data.repository.AuthApi
 import dev.waldq.rostelekom.data.repository.RemoteAuthRepository
 import dev.waldq.rostelekom.data.repository.RemoteUserRepository
 import dev.waldq.rostelekom.data.repository.UserApi
+import kotlinx.coroutines.runBlocking
 
 // Здесь создаются и хранятся все репозитории.
 object AppContainer {
@@ -17,6 +18,8 @@ object AppContainer {
 
     fun init(context: Context) {
         tokenStorage = TokenStorage(context.applicationContext)
+        // OkHttp вызывает interceptor не на главном потоке, поэтому блокировка здесь безопасна
+        ApiClient.accessTokenProvider = { runBlocking { tokenStorage.getAccessToken() } }
     }
     val authRepository: AuthApi by lazy {
         RemoteAuthRepository(api = ApiClient.create<AuthApi>(), tokenStorage = tokenStorage)

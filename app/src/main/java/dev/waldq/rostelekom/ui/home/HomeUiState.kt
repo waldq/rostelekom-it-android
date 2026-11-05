@@ -6,6 +6,9 @@ import dev.waldq.rostelekom.models.AccountStatus
  * Состояние главного экрана: либо грузимся, либо показываем данные.
  */
 sealed interface HomeUiState {
+
+    data object SessionExpired : HomeUiState
+    data class Error(val message: String) : HomeUiState
     data object Loading : HomeUiState
 
     data class NoAccounts(
