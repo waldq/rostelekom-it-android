@@ -23,7 +23,7 @@ object ApiClient {
     private const val BASE_URL = "http://192.168.1.142:8080/"
 
     // DTO в проекте на kotlinx.serialization, поэтому парсим через Json, а не через Gson
-    private val json = Json {
+    internal val json = Json {
         ignoreUnknownKeys = true // бэк может прислать поля, которых нет в наших DTO
     }
 

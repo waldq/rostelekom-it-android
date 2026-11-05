@@ -2,7 +2,7 @@ package dev.waldq.rostelekom.ui.otp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.waldq.rostelekom.data.remote.AuthApi
+import dev.waldq.rostelekom.data.repository.AuthApi
 import dev.waldq.rostelekom.data.repository.ApiException
 import dev.waldq.rostelekom.models.OtpRequestDto
 import dev.waldq.rostelekom.models.OtpVerifyDto

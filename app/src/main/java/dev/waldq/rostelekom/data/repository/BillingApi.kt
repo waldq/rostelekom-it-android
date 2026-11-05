@@ -1,4 +1,4 @@
-package dev.waldq.rostelekom.data.remote
+package dev.waldq.rostelekom.data.repository
 
 import dev.waldq.rostelekom.models.AccountDto
 import dev.waldq.rostelekom.models.CreatePaymentDto

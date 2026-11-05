@@ -11,6 +11,7 @@ import dev.waldq.rostelekom.ui.home.HomeRoute
 import dev.waldq.rostelekom.ui.home.ProfileScreen
 import dev.waldq.rostelekom.ui.login.LoginRoute
 import dev.waldq.rostelekom.ui.otp.OtpRoute
+import dev.waldq.rostelekom.ui.registration.RegistrationRoute
 
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier, navController: NavHostController = rememberNavController()) {
@@ -38,6 +39,21 @@ fun AppNavHost(modifier: Modifier = Modifier, navController: NavHostController =
                 phone = route.phone,
                 devCode = route.devCode,
                 resendAfterSeconds = route.resendAfterSeconds,
+                onBack = { navController.popBackStack() },
+                onLoggedIn = {
+                    navController.navigate(Home) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable<Registration> { backStackEntry ->
+            val route = backStackEntry.toRoute<Registration>()
+
+            RegistrationRoute(
+                phone = route.phone,
+                registrationToken = route.registrationToken,
                 onBack = { navController.popBackStack() },
                 onLoggedIn = {
                     navController.navigate(Home) {

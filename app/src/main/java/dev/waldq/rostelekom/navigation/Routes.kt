@@ -8,6 +8,11 @@ import kotlinx.serialization.Serializable
     val devCode: String? = null,
     val resendAfterSeconds: Long = 60
 )
+
+@Serializable data class Registration(
+    val phone: String,
+    val registrationToken: String,
+)
 @Serializable object Home
 
 @Serializable object Profile

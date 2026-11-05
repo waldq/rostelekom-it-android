@@ -2,6 +2,8 @@ package dev.waldq.rostelekom.data.remote;
 
 
 import dev.waldq.rostelekom.data.repository.ApiException
+import dev.waldq.rostelekom.data.repository.ProblemDto
+import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -9,12 +11,28 @@ import java.io.IOException
 suspend fun <T> safeApiCall(block: suspend () -> T): T = try {
     block()
 } catch (e: HttpException) {                      // бэк ответил 4xx/5xx
-    throw ApiException(
-        // TODO поменять исключения
-        statusCode = e.code(),
-        message = e.message(),                    // TODO если бэк присылает текст ошибки в JSON - разобрать его здесь
-        retryAfterSeconds = e.response()?.headers()?.get("Retry-After")?.toLongOrNull() ?: 0,
-    )
+    throw e.toApiExcetion()
 } catch (e: IOException) {                        // нет сети, таймаут
     throw ApiException(statusCode = 0, message = "Не удалось подключиться к серверу")
+} catch (e: SerializationException) {             // вопросы к Потапу и Бажеке
+    throw ApiException(statusCode = 0, message = "Сервер прислал непонятный ответ")
+}
+
+private fun HttpException.toApiExcetion(): ApiException {
+    val response = response()
+
+    val body = response?.errorBody()?.string()
+    val problem = body?.let { text ->
+        runCatching { ApiClient.json.decodeFromString<ProblemDto>(text) }.getOrNull()
+    }
+
+    val retryAfter = response?.headers()?.get("Retry-After")?.toLongOrNull() ?: 0
+
+    return ApiException(
+        statusCode = code(),
+        message = problem?.detail ?: "Ошибка сервера (${code()})",
+        retryAfterSeconds = retryAfter,
+        reason = problem?.reason,
+        fieldErrors = problem?.errors ?: emptyMap(),
+    )
 }

@@ -1,4 +1,4 @@
-package dev.waldq.rostelekom.data.remote
+package dev.waldq.rostelekom.data.repository
 
 import dev.waldq.rostelekom.models.UpdateProfileDto
 import dev.waldq.rostelekom.models.UserProfileDto
