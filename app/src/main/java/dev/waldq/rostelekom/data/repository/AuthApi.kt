@@ -4,7 +4,6 @@ import dev.waldq.rostelekom.models.OtpChallengeDto
 import dev.waldq.rostelekom.models.OtpRequestDto
 import dev.waldq.rostelekom.models.OtpVerifyDto
 import dev.waldq.rostelekom.models.RegisterDto
-import dev.waldq.rostelekom.models.TokenPairDto
 import dev.waldq.rostelekom.models.VerifyResponseDto
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -37,5 +36,5 @@ interface AuthApi {
     suspend fun verifyCode(@Body body: OtpVerifyDto): VerifyResponseDto
 
     @POST("api/auth/register")
-    suspend fun registerAccount(@Body body: RegisterDto): TokenPairDto
+    suspend fun registerAccount(@Body body: RegisterDto): VerifyResponseDto
 }

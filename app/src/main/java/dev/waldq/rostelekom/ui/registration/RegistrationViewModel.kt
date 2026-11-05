@@ -43,17 +43,17 @@ class RegistrationViewModel(
                 isLoading = true,
             ) }
 
-            val tokens = repository.registerAccount(RegisterDto(
-                registrationToken = state.registrationToken,
-                lastName = state.lastName,
-                firstName = state.firstName,
-                middleName = state.middleName,
-                )
-            )
-
             try {
-
+                repository.registerAccount(RegisterDto(
+                    registrationToken = state.registrationToken,
+                    lastName = state.lastName.trim(),
+                    firstName = state.firstName.trim(),
+                    middleName = state.middleName.trim().ifBlank { null },
+                    )
+                )
+                _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
             } catch (e: ApiException) {
+                // TODO
                 _uiState.update { it.copy(
                     firstNameError = e.message,
                     lastNameError = e.message,

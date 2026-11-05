@@ -60,25 +60,6 @@ data class OtpChallengeDto(
  * Body ответа с сервера `/api/auth/otp/verify`
  */
 @Serializable
-data class TokenPairDto(
-    val accessToken: String,
-    val refreshToken: String,
-    val tokenType: String,
-    val expiresInSeconds: Long,
-    val userId: String // UUID на самом деле, просто в мобилке оно вряд ли будет использоваться
-)
-
-
-/**
- * @property accessToken access токен
- * @property refreshToken refresh токен
- * @property tokenType тип токена
- * @property expiresInSeconds время истечения токена
- * @property userId UUID пользователя
- *
- * Body ответа с сервера `/api/auth/otp/verify`
- */
-@Serializable
 data class VerifyResponseDto(
     val accessToken: String? = null,
     val refreshToken: String? = null,

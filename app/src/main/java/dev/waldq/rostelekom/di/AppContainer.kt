@@ -17,7 +17,7 @@ object AppContainer {
         tokenStorage = TokenStorage(context.applicationContext)
     }
     val authRepository: AuthApi by lazy {
-        RemoteAuthRepository(ApiClient.create<AuthApi>())
+        RemoteAuthRepository(api = ApiClient.create<AuthApi>(), tokenStorage = tokenStorage)
     }
 
 }
