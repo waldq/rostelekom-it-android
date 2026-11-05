@@ -38,12 +38,12 @@ fun ProfileScreen(onLogout: () -> Unit) {
 
 }
 
-@Preview(showSystemUi = true, device = "spec:width=360dp,height=780dp")
-@Composable
-fun HomeScreenPreview() {
-    RostelekomitandroidTheme{
-        HomeScreen {
-            {}
-        }
-    }
-}
+//@Preview(showSystemUi = true, device = "spec:width=360dp,height=780dp")
+//@Composable
+//fun HomeScreenPreview() {
+//    RostelekomitandroidTheme{
+//        HomeScreen {
+//            {}
+//        }
+//    }
+//}

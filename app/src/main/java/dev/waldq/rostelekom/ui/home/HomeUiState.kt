@@ -16,13 +16,17 @@ sealed interface HomeUiState {
      * @property transactions последние операции, новые первыми.
      */
     data class Content(
+        val depositeValue: String,
+        val showDeposite: Boolean,
         val selectedItem: Int,
         val greeting: String,
-        val balance: String,
+        val balance: Double,
         val accountNumber: String,
         val status: AccountStatus,
         val transactions: List<TransactionUi>,
     ) : HomeUiState {
+        val depositeAmount: Double
+            get() = depositeValue.replace(',', '.').toDoubleOrNull() ?: 0.0
         val statusText = when (status) {
             AccountStatus.ACTIVE -> "Активен"
             AccountStatus.BLOCKED -> "Заблокирован"

@@ -1,8 +1,10 @@
 package dev.waldq.rostelekom.ui.home
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.waldq.rostelekom.models.AccountStatus
+import dev.waldq.rostelekom.validation.allowInputPaymentAmount
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,9 +30,11 @@ class HomeViewModel : ViewModel() {
             delay(800.milliseconds)
 
             _uiState.value = HomeUiState.Content(
+                depositeValue = "0.0",
+                showDeposite = false,
                 selectedItem = 0,
                 greeting = "Добрый день, Ростелекомовцы!",
-                balance = String.format(Locale("ru", "RU"), "%,.2f ₽", 6767.67),
+                balance = 6767.67,
                 accountNumber = "№ 1234 5678 9012 3456",
                 status = AccountStatus.ACTIVE,
                 transactions = listOf(
@@ -40,5 +44,25 @@ class HomeViewModel : ViewModel() {
                 ),
             )
         }
+    }
+
+    fun updateBalance(value: Double) {
+        val current = _uiState.value
+        if (current is HomeUiState.Content)
+            _uiState.value = current.copy(balance = current.balance + value);
+    }
+
+    fun updateDepositeValue(value: String){
+        if (!allowInputPaymentAmount(value)) return
+        val current = _uiState.value
+        if (current is HomeUiState.Content)
+            _uiState.value = current.copy(depositeValue = value)
+    }
+
+    @SuppressLint("SuspiciousIndentation")
+    fun changeShowDeposite(){
+        val current = _uiState.value
+        if (current is HomeUiState.Content)
+        _uiState.value = current.copy(showDeposite = !current.showDeposite);
     }
 }
