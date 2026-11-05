@@ -20,15 +20,15 @@ class RegistrationViewModel(
     val uisState = _uiState.asStateFlow() // снаружи только изменяемое сотояние
 
     fun onFirstNameChange(name: String) {
-        _uiState.update { it.copy(firstName = filterName(name)) }
+        _uiState.update { it.copy(firstName = filterName(name), firstNameError = null) }
     }
 
     fun onLastNameChange(name: String) {
-        _uiState.update { it.copy(lastName = filterName(name)) }
+        _uiState.update { it.copy(lastName = filterName(name), lastNameError = null) }
     }
 
     fun onMiddleNameChange(name: String) {
-        _uiState.update { it.copy(middleName = filterName(name)) }
+        _uiState.update { it.copy(middleName = filterName(name), middleNameError = null) }
     }
 
     fun onSubmit() {

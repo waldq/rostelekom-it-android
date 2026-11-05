@@ -1,5 +1,6 @@
 package dev.waldq.rostelekom.ui.registration
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -139,47 +140,49 @@ fun RegistrationScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            NameOutlinedTextField(
-                value = uiState.lastName,
-                onValueChange = onMiddleNameTextFieldChange,
-                isEnabled = uiState.isLastNameEnabled,
-                label = { Text("Фамилия") },
-                placeholder = { Text("Чебупелин") },
-                error = uiState.lastNameError,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            NameOutlinedTextField(
-                value = uiState.firstName,
-                onValueChange = onFirstNameTextFieldChange,
-                isEnabled = uiState.isLastNameEnabled,
-                label = { Text("Имя") },
-                placeholder = { Text("Жека") },
-                error = uiState.firstNameError,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth(),
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                NameOutlinedTextField(
+                    value = uiState.lastName,
+                    onValueChange = onLastNameTextFieldChange,
+                    isEnabled = !uiState.isLoading,
+                    label = { Text("Фамилия") },
+                    placeholder = { Text("Чебупелин") },
+                    error = uiState.lastNameError,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Next
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
-            NameOutlinedTextField(
-                value = uiState.middleName,
-                onValueChange = onMiddleNameTextFieldChange,
-                isEnabled = uiState.isMiddleNameEnabled,
-                label = { Text("Отчество") },
-                placeholder = { Text("Толянович") },
-                error = uiState.middleNameError,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth(),
+                NameOutlinedTextField(
+                    value = uiState.firstName,
+                    onValueChange = onFirstNameTextFieldChange,
+                    isEnabled = !uiState.isLoading,
+                    label = { Text("Имя") },
+                    placeholder = { Text("Жека") },
+                    error = uiState.firstNameError,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Next
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
                 )
+
+                NameOutlinedTextField(
+                    value = uiState.middleName,
+                    onValueChange = onMiddleNameTextFieldChange,
+                    isEnabled = !uiState.isLoading,
+                    label = { Text("Отчество") },
+                    placeholder = { Text("Толянович") },
+                    error = uiState.middleNameError,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Done
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
 
             Text(
                 text = "Необязательно",
@@ -225,9 +228,12 @@ private fun NameOutlinedTextField(
     label: @Composable () -> Unit,
     placeholder: @Composable () -> Unit,
     error: String?,
+    hint: String? = null,
     keyboardOptions: KeyboardOptions,
     modifier: Modifier = Modifier,
 ) {
+    val text = error ?: hint
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -235,7 +241,7 @@ private fun NameOutlinedTextField(
         modifier = modifier,
         label = label,
         placeholder = placeholder,
-        supportingText = if (error != null) { { Text(error) } } else { null },
+        supportingText = if (text != null) { { Text(text) } } else { null },
         isError = error != null,
         keyboardOptions = keyboardOptions,
         shape = RoundedCornerShape(10.dp),
