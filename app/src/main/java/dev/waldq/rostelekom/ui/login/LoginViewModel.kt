@@ -2,9 +2,10 @@ package dev.waldq.rostelekom.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.waldq.rostelekom.data.remote.AuthApi
 import dev.waldq.rostelekom.data.repository.ApiException
-import dev.waldq.rostelekom.data.repository.AuthRepository
 import dev.waldq.rostelekom.models.OtpChallengeDto
+import dev.waldq.rostelekom.models.OtpRequestDto
 import dev.waldq.rostelekom.validation.filterPhone
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -14,12 +15,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
+class LoginViewModel(private val repository: AuthApi) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow() // снаружи только неизменяемое состояние
 
     private var retryTimer: Job? = null // корутина таймера
 
+    private fun String.toOtpRequestDto(): OtpRequestDto = OtpRequestDto("+7$this")
 
     /**
      * Функция для обновления номера телефона.
@@ -48,7 +50,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 // пробуем отправить запрос с на получение кода
-                val challenge = repository.requestCode("+7${state.phone}")
+                val challenge = repository.requestCode(state.phone.toOtpRequestDto())
 
                 // обновляем состояние, когда код пришёл
                 _uiState.update { it.copy(isLoading = false, challenge = challenge) }
@@ -67,7 +69,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    // функция, которая запускаяет корутину таймера
+    // функция, которая запускает корутину таймера
     private fun startRetryTimer(seconds: Long) {
         retryTimer?.cancel()
         retryTimer = viewModelScope.launch {

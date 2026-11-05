@@ -1,9 +1,11 @@
-package dev.waldq.rostelekom.data.repository
+package dev.waldq.rostelekom.data.remote
 
 import dev.waldq.rostelekom.models.OtpChallengeDto
 import dev.waldq.rostelekom.models.OtpRequestDto
 import dev.waldq.rostelekom.models.OtpVerifyDto
 import dev.waldq.rostelekom.models.TokenPairDto
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 /**
  * Интерфейс репозитория, работающий с запросами на авторизацию.
@@ -11,23 +13,24 @@ import dev.waldq.rostelekom.models.TokenPairDto
  * С ним взаимодействует ViewModel экрана логина,
  * чтобы UI не видел непосредственного кода репозитория.
  */
-interface AuthRepository {
+interface AuthApi {
     /**
      * Функция для запроса на получение OTP кода.
      *
      * Отправляет запрос на `/api/auth/otp/request` в виде [OtpRequestDto].
      *
-     * @param phone номер телефона в формате +79991234567.
+     * @param body это Dto, где номер телефона в формате +79991234567.
      */
-    suspend fun requestCode(phone: String): OtpChallengeDto
+    @POST("api/auth/otp/request")
+    suspend fun requestCode(@Body body: OtpRequestDto): OtpChallengeDto
 
     /**
      * Функция для отправки кода и получения пары токенов.
      *
      * Отправляет запрос на `/api/auth/otp/verify` в виде [OtpVerifyDto]
      *
-     * @param phone номер телефона в формате +79991234567.
-     * @param code OTP код. Пока что 6 цифр.
+     * @param body это номер телефона это OTP код
      */
-    suspend fun verifyCode(phone: String, code: String): TokenPairDto
+    @POST("api/auth/otp/verify")
+    suspend fun verifyCode(@Body body: OtpVerifyDto): TokenPairDto
 }

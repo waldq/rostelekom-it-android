@@ -2,8 +2,10 @@ package dev.waldq.rostelekom.ui.otp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.waldq.rostelekom.data.remote.AuthApi
 import dev.waldq.rostelekom.data.repository.ApiException
-import dev.waldq.rostelekom.data.repository.AuthRepository
+import dev.waldq.rostelekom.models.OtpRequestDto
+import dev.waldq.rostelekom.models.OtpVerifyDto
 import dev.waldq.rostelekom.validation.filterCode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -17,7 +19,7 @@ class OtpViewModel(
     phone: String,
     devCode: String?,
     retryAfterSeconds: Long,
-    private val repository: AuthRepository
+    private val repository: AuthApi
 ): ViewModel() {
     private val _uiState = MutableStateFlow(OtpUiState(phone = phone, devCode = devCode))
     val uiState = _uiState.asStateFlow() // снаружи только неизменяемое состояние
@@ -54,7 +56,7 @@ class OtpViewModel(
             _uiState.update { it.copy(error = null, isLoading = true) }
             try {
                 // запрашиваем токены с сервера
-                val tokens = repository.verifyCode(phone = "+7${state.phone}", code = state.code)
+                val tokens = repository.verifyCode(OtpVerifyDto(phone = "+7${state.phone}", code = state.code))
 
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
                 // TODO записать токены и перейти на главную страницу скорее всего
@@ -76,7 +78,7 @@ class OtpViewModel(
             _uiState.update { it.copy(code = "", error = null, isLoading = true) }
             try {
                 // пробуем отправить запрос с на получение кода
-                val challenge = repository.requestCode("+7${state.phone}")
+                val challenge = repository.requestCode(OtpRequestDto("+7${state.phone}"))
 
                 _uiState.update { it.copy(devCode = challenge.code, isLoading = false) }
                 startRetryTimer(challenge.resendAfterSeconds)
