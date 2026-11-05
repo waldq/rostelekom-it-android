@@ -3,7 +3,7 @@ package dev.waldq.rostelekom.data.remote
 import dev.waldq.rostelekom.models.OtpChallengeDto
 import dev.waldq.rostelekom.models.OtpRequestDto
 import dev.waldq.rostelekom.models.OtpVerifyDto
-import dev.waldq.rostelekom.models.TokenPairDto
+import dev.waldq.rostelekom.models.VerifyResponseDto
 import retrofit2.http.Body
 import retrofit2.http.POST
 
@@ -32,5 +32,5 @@ interface AuthApi {
      * @param body это номер телефона это OTP код
      */
     @POST("api/auth/otp/verify")
-    suspend fun verifyCode(@Body body: OtpVerifyDto): TokenPairDto
+    suspend fun verifyCode(@Body body: OtpVerifyDto): VerifyResponseDto
 }

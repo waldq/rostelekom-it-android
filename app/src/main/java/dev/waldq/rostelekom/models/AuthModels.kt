@@ -60,7 +60,7 @@ data class OtpChallengeDto(
  * Body ответа с сервера `/api/auth/otp/verify`
  */
 @Serializable
-data class TokenPairDto(
+data class VerifyResponseDto(
     val accessToken: String? = null,
     val refreshToken: String? = null,
     val tokenType: String? = null,
