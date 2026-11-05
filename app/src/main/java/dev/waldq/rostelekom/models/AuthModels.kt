@@ -61,9 +61,18 @@ data class OtpChallengeDto(
  */
 @Serializable
 data class TokenPairDto(
-    val accessToken: String,
-    val refreshToken: String,
-    val tokenType: String,
+    val accessToken: String? = null,
+    val refreshToken: String? = null,
+    val tokenType: String? = null,
     val expiresInSeconds: Long,
-    val userId: String // UUID на самом деле, просто в мобилке оно вряд ли будет использоваться
+    val userId: String? = null,
+    val registrationToken: String? = null,
+)
+
+@Serializable
+data class RegisterDto(
+    val registrationToken: String,
+    val lastName: String,
+    val firstName: String,
+    val middleName: String? = null,
 )

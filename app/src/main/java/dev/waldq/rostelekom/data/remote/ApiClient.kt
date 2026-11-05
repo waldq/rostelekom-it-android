@@ -20,7 +20,7 @@ import kotlin.getValue
 object ApiClient {
     // TODO адрес бэка. 10.0.2.2 - это localhost компьютера, если запускаешь на эмуляторе.
     //  Для http (не https) в манифесте стоит android:usesCleartextTraffic="true"
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://192.168.1.142:8080/"
 
     // DTO в проекте на kotlinx.serialization, поэтому парсим через Json, а не через Gson
     private val json = Json {
