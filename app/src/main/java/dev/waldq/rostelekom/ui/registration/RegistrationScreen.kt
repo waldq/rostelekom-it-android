@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -62,7 +63,7 @@ fun RegistrationRoute(
         repository = AppContainer.authRepository
     ) }
 ) {
-    val uiState by viewModel.uisState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) {
@@ -181,20 +182,15 @@ fun RegistrationScreen(
                     label = { Text("Отчество") },
                     placeholder = { Text("Толянович") },
                     error = uiState.middleNameError,
+                    hint = "Необязательно",
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Words,
                         imeAction = ImeAction.Done
                     ),
+                    keyboardActions = KeyboardActions(onDone = { onSubmit() }),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-
-            Text(
-                text = "Необязательно",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp, top  = 4.dp, end = 16.dp, bottom = 0.dp),
-            )
 
             Spacer(Modifier.weight(1f))
 
@@ -255,6 +251,7 @@ private fun NameOutlinedTextField(
     error: String?,
     hint: String? = null,
     keyboardOptions: KeyboardOptions,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     modifier: Modifier = Modifier,
 ) {
     val text = error ?: hint

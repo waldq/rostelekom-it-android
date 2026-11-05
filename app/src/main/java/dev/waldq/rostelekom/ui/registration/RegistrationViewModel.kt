@@ -17,7 +17,7 @@ class RegistrationViewModel(
     private val repository: AuthApi,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RegistrationUiState(phone = phone, registrationToken = registrationToken))
-    val uisState = _uiState.asStateFlow() // снаружи только изменяемое сотояние
+    val uiState = _uiState.asStateFlow() // снаружи только изменяемое сотояние
 
     fun onFirstNameChange(name: String) {
         _uiState.update { it.copy(
