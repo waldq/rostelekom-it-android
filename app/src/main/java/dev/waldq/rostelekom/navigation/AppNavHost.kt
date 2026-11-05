@@ -40,6 +40,11 @@ fun AppNavHost(modifier: Modifier = Modifier, navController: NavHostController =
                 devCode = route.devCode,
                 resendAfterSeconds = route.resendAfterSeconds,
                 onBack = { navController.popBackStack() },
+                onRegistrationRequired = { token ->
+                    navController.navigate(Registration(phone = route.phone, registrationToken = token)) {
+                        popUpTo<OtpCode> { inclusive = true }
+                    }
+                },
                 onLoggedIn = {
                     navController.navigate(Home) {
                         popUpTo(navController.graph.id) { inclusive = true }

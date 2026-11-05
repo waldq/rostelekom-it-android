@@ -56,9 +56,14 @@ class OtpViewModel(
             _uiState.update { it.copy(error = null, isLoading = true) }
             try {
                 // запрашиваем токены с сервера
-                val tokens = repository.verifyCode(OtpVerifyDto(phone = "+7${state.phone}", code = state.code))
+                val response = repository.verifyCode(OtpVerifyDto(phone = "+7${state.phone}", code = state.code))
+                val registrationToken = response.registrationToken
+                if (registrationToken != null) {
+                    _uiState.update { it.copy(isLoading = false, registrationToken = registrationToken) }
+                } else {
+                    _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
+                }
 
-                _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
                 // TODO записать токены и перейти на главную страницу скорее всего
             } catch (e: ApiException) {
                 _uiState.update { it.copy(error = e.message, isLoading = false) }
@@ -96,6 +101,10 @@ class OtpViewModel(
 
     fun onLoggedInHandled() {
         _uiState.update { it.copy(isLoggedIn = false) }
+    }
+
+    fun onRegistrationHandled() {
+        _uiState.update { it.copy(registrationToken = null) }
     }
 
     // функция, которая запускаяет корутину таймера
