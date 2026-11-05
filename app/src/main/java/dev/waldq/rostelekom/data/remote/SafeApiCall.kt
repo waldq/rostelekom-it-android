@@ -1,8 +1,9 @@
 package dev.waldq.rostelekom.data.remote;
 
-import androidx.datastore.core.IOException
+
 import dev.waldq.rostelekom.data.repository.ApiException
 import retrofit2.HttpException
+import java.io.IOException
 
 
 suspend fun <T> safeApiCall(block: suspend () -> T): T = try {
