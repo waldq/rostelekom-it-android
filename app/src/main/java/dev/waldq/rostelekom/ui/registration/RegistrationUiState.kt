@@ -9,6 +9,8 @@ data class RegistrationUiState(
     val firstNameError: String? = null,
     val lastNameError: String? = null,
     val middleNameError: String? = null,
+    val error: String? = null,
+    val isSessionExpired: Boolean = false,
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
 ) {

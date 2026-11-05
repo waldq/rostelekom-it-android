@@ -20,15 +20,30 @@ class RegistrationViewModel(
     val uisState = _uiState.asStateFlow() // снаружи только изменяемое сотояние
 
     fun onFirstNameChange(name: String) {
-        _uiState.update { it.copy(firstName = filterName(name), firstNameError = null) }
+        _uiState.update { it.copy(
+            firstName = filterName(name),
+            firstNameError = null,
+            error = null,
+            )
+        }
     }
 
     fun onLastNameChange(name: String) {
-        _uiState.update { it.copy(lastName = filterName(name), lastNameError = null) }
+        _uiState.update { it.copy(
+            lastName = filterName(name),
+            lastNameError = null,
+            error = null,
+            )
+        }
     }
 
     fun onMiddleNameChange(name: String) {
-        _uiState.update { it.copy(middleName = filterName(name), middleNameError = null) }
+        _uiState.update { it.copy(
+            middleName = filterName(name),
+            middleNameError = null,
+            error = null,
+            )
+        }
     }
 
     fun onSubmit() {
@@ -53,12 +68,24 @@ class RegistrationViewModel(
                 )
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
             } catch (e: ApiException) {
-                // TODO
-                _uiState.update { it.copy(
-                    firstNameError = e.message,
-                    lastNameError = e.message,
-                    middleNameError = e.message
-                ) }
+                _uiState.update {
+                    when {
+                        e.reason == "NOT_REQUESTED" -> it.copy(
+                            isLoading = false,
+                            isSessionExpired = true,
+                        )
+                        e.fieldErrors.isNotEmpty() -> it.copy(
+                            isLoading = false,
+                            lastNameError = e.fieldErrors["lastName"],
+                            firstNameError = e.fieldErrors["firstName"],
+                            middleNameError = e.fieldErrors["middleName"],
+                        )
+                        else -> it.copy(
+                            isLoading = false,
+                            error = e.message,
+                        )
+                    }
+                }
             }
         }
     }

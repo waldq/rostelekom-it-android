@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +54,7 @@ fun RegistrationRoute(
     phone: String,
     registrationToken: String,
     onBack: () -> Unit,
+    onSessionExpired: () -> Unit,
     onLoggedIn: () -> Unit,
     viewModel: RegistrationViewModel = viewModel { RegistrationViewModel(
         phone = phone,
@@ -71,6 +74,7 @@ fun RegistrationRoute(
     RegistrationScreen(
         uiState = uiState,
         onBack = onBack,
+        onSessionExpired = onSessionExpired,
         onFirstNameTextFieldChange = viewModel::onFirstNameChange,
         onLastNameTextFieldChange = viewModel::onLastNameChange,
         onMiddleNameTextFieldChange = viewModel::onMiddleNameChange,
@@ -83,6 +87,7 @@ fun RegistrationRoute(
 fun RegistrationScreen(
     uiState: RegistrationUiState,
     onBack: () -> Unit,
+    onSessionExpired: () -> Unit,
     onFirstNameTextFieldChange: (String) -> Unit,
     onLastNameTextFieldChange: (String) -> Unit,
     onMiddleNameTextFieldChange: (String) -> Unit,
@@ -193,6 +198,15 @@ fun RegistrationScreen(
 
             Spacer(Modifier.weight(1f))
 
+            if (uiState.error != null) {
+                Text(
+                    text = uiState.error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+            }
+
             // кнопка ввода. Активна, когда поля корректны. TODO
             Button(
                 onClick = onSubmit,
@@ -216,6 +230,17 @@ fun RegistrationScreen(
                     Text(text = "Зарегистрироваться")
                 }
             }
+        }
+
+        if (uiState.isSessionExpired) {
+            AlertDialog(
+                onDismissRequest = onSessionExpired,
+                confirmButton = {
+                    TextButton(onClick = onSessionExpired) { Text("Войти заново") }
+                },
+                title = { Text("Время вышло") },
+                text = { Text("Сессия регистрации истекла. Подтвердите номер ещё раз — это займёт минуту.") },
+            )
         }
     }
 }
@@ -258,6 +283,7 @@ private fun RegistrationScreenPreview() {
                 registrationToken = "registrationToken",
             ),
             onBack = {},
+            onSessionExpired = {},
             onSubmit = {},
             onFirstNameTextFieldChange = {},
             onLastNameTextFieldChange = {},

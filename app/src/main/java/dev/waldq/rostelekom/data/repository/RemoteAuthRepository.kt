@@ -15,7 +15,7 @@ class RemoteAuthRepository(
         safeApiCall { api.requestCode(body) }
 
     override suspend fun verifyCode(body: OtpVerifyDto) =
-        safeApiCall { api.verifyCode(body) }
+        safeApiCall { api.verifyCode(body) }.also { saveTokens(it) }
 
     override suspend fun registerAccount(body: RegisterDto) =
         safeApiCall { api.registerAccount(body) }.also { saveTokens(it) }

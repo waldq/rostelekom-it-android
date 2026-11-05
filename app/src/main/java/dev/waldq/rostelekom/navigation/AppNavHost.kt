@@ -14,10 +14,14 @@ import dev.waldq.rostelekom.ui.otp.OtpRoute
 import dev.waldq.rostelekom.ui.registration.RegistrationRoute
 
 @Composable
-fun AppNavHost(modifier: Modifier = Modifier, navController: NavHostController = rememberNavController()) {
+fun AppNavHost(
+    startDestination: Any,
+    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberNavController()
+) {
     NavHost(
         navController = navController,
-        startDestination = Login,
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable<Login> {
@@ -60,6 +64,11 @@ fun AppNavHost(modifier: Modifier = Modifier, navController: NavHostController =
                 phone = route.phone,
                 registrationToken = route.registrationToken,
                 onBack = { navController.popBackStack() },
+                onSessionExpired = {
+                    navController.navigate(Login) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                },
                 onLoggedIn = {
                     navController.navigate(Home) {
                         popUpTo(navController.graph.id) { inclusive = true }

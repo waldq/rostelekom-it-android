@@ -64,7 +64,6 @@ class OtpViewModel(
                     _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
                 }
 
-                // TODO записать токены и перейти на главную страницу скорее всего
             } catch (e: ApiException) {
                 _uiState.update { it.copy(error = e.message, isLoading = false) }
             }
