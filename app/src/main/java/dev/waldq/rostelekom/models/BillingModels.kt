@@ -26,6 +26,58 @@ data class AccountDto(
     val status: AccountStatus
 )
 
+enum class PaymentStatus {
+    PENDING,         // создан, ждём оплату
+    SUCCEEDED,       // деньги зачислены
+    CANCELED,        // отменён или не прошёл
+    REFUND_REQUIRED, // оплата пришла, когда счёт уже закрыт
+}
+
+
+@Serializable
+data class TransactionPageDto(
+    val content: List<TransactionDto>,
+    val page: PageInfo,
+)
+
+enum class TransactionType {
+    TOP_UP, // пополнение (+)
+    CHARGE, // списание, например абонентская плата (-)
+    REFUND, // возврат (+)
+}
+
+
+@Serializable
+data class TransactionDto(
+    val id: String,
+    val type: TransactionType,
+    val amount: Double,
+    val balanceAfter: Double,
+    val description: String? = null,
+    val paymentId: String? = null,
+    val createdAt: String,
+)
+
+/** Служебная часть страницы: Spring кладёт её во вложенный объект `page`. */
+@Serializable
+data class PageInfo(
+    val size: Int,
+    val number: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+)
+
+
+@Serializable
+data class PaymentDto(
+    val id: String,
+    val amount: Double,
+    val currency: String,
+    val status: PaymentStatus,
+    val confirmationUrl: String? = null,
+    val createdAt: String,
+)
+
 
 /**
  * @property amount сумма
