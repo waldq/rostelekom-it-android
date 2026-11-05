@@ -1,17 +1,20 @@
 package dev.waldq.rostelekom.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.ui.home.HomeRoute
-import dev.waldq.rostelekom.ui.home.ProfileScreen
+import dev.waldq.rostelekom.ui.profile.ProfileScreen
 import dev.waldq.rostelekom.ui.login.LoginRoute
 import dev.waldq.rostelekom.ui.otp.OtpRoute
 import dev.waldq.rostelekom.ui.registration.RegistrationRoute
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavHost(
@@ -19,6 +22,8 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
+    val scope = rememberCoroutineScope()
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -87,8 +92,11 @@ fun AppNavHost(
 
         composable <Profile> {
             ProfileScreen {
-                navController.navigate(route = Login) {
-                    popUpTo(navController.graph.id) { inclusive = true }
+                scope.launch {
+                    AppContainer.tokenStorage.clear()
+                    navController.navigate(Login) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
             }
         }

@@ -9,8 +9,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
 class HomeViewModel : ViewModel() {

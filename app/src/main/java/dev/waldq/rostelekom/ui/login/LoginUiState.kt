@@ -1,7 +1,6 @@
 package dev.waldq.rostelekom.ui.login
 
 import dev.waldq.rostelekom.models.OtpChallengeDto
-import dev.waldq.rostelekom.models.OtpRequestDto
 import dev.waldq.rostelekom.validation.validatePhone
 
 /**
