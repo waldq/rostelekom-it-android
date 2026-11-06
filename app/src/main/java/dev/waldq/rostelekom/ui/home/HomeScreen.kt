@@ -51,7 +51,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.models.AccountStatus
 import dev.waldq.rostelekom.ui.components.AmountVisualTransformation
-import dev.waldq.rostelekom.ui.home.HomeViewModel
 import dev.waldq.rostelekom.ui.theme.BalanceGradient
 import dev.waldq.rostelekom.ui.theme.Green
 import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
@@ -65,8 +64,13 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UseKtx", "QueryPermissionsNeeded")
 @Composable
-fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
-    val viewModel: HomeViewModel = viewModel()
+fun HomeScreen(
+    content: HomeUiState.Content,
+    onProfile: () -> Unit,
+    onChangeShowDeposit: () -> Unit,
+    onUpdateDepositValue: (String) -> Unit,
+    updateBalance: (Double) -> Unit,
+    ) {
     Scaffold(
         bottomBar = {
             NavigationBar(
@@ -98,7 +102,7 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
     ) { innerPadding ->
         if (content.showDeposite) {
             ModalBottomSheet(
-                onDismissRequest = { viewModel.changeShowDeposite() },
+                onDismissRequest = onChangeShowDeposit,
             ) {
                 Column(
                     modifier = Modifier
@@ -119,7 +123,7 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
 
                     OutlinedTextField(
                         value = content.depositeValue, //String.format(Locale("ru", "RU"), "%,.2f ₽", content.depositeValue),
-                        onValueChange = viewModel::updateDepositeValue,
+                        onValueChange = onUpdateDepositValue,
                         visualTransformation = AmountVisualTransformation,
                         modifier = Modifier.fillMaxWidth(),
                         label = {Text("Сумма")},
@@ -135,7 +139,7 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
                     ) {
                         listOf(100.0 to "+100 ₽", 500.0 to "+500 ₽", 1000.0 to "+1 000 ₽").forEach { (value, label) ->
                             Button(
-                                onClick = { viewModel.updateDepositeValue((value + content.depositeAmount).toString()) }
+                                onClick = { onUpdateDepositValue((value + content.depositeAmount).toString()) }
                             ) {
                                 Text(label)
                             }
@@ -144,9 +148,9 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
 
                     Button(
                         onClick = {
-                            viewModel.updateBalance(content.depositeAmount)
-                            viewModel.updateDepositeValue("0.0")
-                            viewModel.changeShowDeposite()
+                            updateBalance(content.depositeAmount)
+                            onUpdateDepositValue(("0.0"))
+                            onChangeShowDeposit()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -190,7 +194,7 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
 
             item {
                 Button(
-                    onClick = { viewModel.changeShowDeposite() },
+                    onClick = onChangeShowDeposit,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -345,7 +349,11 @@ fun HomeRoute(onProfile: () -> Unit, onSessionExpired: () -> Unit) {
             Loading()
         }
         is HomeUiState.Content -> HomeScreen(
-            state, onProfile
+            content = state,
+            onProfile = onProfile,
+            onChangeShowDeposit = viewModel::changeShowDeposit,
+            onUpdateDepositValue = viewModel::updateDepositValue,
+            updateBalance = viewModel::updateBalance,
         )
         is HomeUiState.NoAccounts -> CreateAccount(state, viewModel)
         is HomeUiState.SessionExpired -> LaunchedEffect(Unit) { onSessionExpired() }
@@ -546,6 +554,10 @@ private fun HomeContentPreview() {
                     ),
                 ),
             ),
-        ) {  }
+            onProfile = {},
+            onChangeShowDeposit = {},
+            onUpdateDepositValue = {},
+            updateBalance = {},
+        )
     }
 }

@@ -95,7 +95,7 @@ class HomeViewModel(
             _uiState.value = current.copy(balance = current.balance + value);
     }
 
-    fun updateDepositeValue(value: String){
+    fun updateDepositValue(value: String){
         if (!allowInputPaymentAmount(value)) return
         val current = _uiState.value
         if (current is HomeUiState.Content)
@@ -103,7 +103,7 @@ class HomeViewModel(
     }
 
     @SuppressLint("SuspiciousIndentation")
-    fun changeShowDeposite(){
+    fun changeShowDeposit(){
         val current = _uiState.value
         if (current is HomeUiState.Content)
         _uiState.value = current.copy(showDeposite = !current.showDeposite);

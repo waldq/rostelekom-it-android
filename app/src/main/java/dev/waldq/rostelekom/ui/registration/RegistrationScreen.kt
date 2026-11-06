@@ -266,6 +266,8 @@ private fun NameOutlinedTextField(
         supportingText = if (text != null) { { Text(text) } } else { null },
         isError = error != null,
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        singleLine = true,
         shape = RoundedCornerShape(10.dp),
     )
 }
