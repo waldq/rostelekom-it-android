@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
 /**
  * enum для NavBar
  */
-public final enum class NavBarItems(
+enum class NavBarItems(
     val title: String,
     val route: Any,
     @DrawableRes val icon: Int,
