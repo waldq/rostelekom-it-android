@@ -1,11 +1,17 @@
 package dev.waldq.rostelekom.data.remote
 
+import dev.waldq.rostelekom.data.repository.AuthApi
+import dev.waldq.rostelekom.di.AppContainer
+import dev.waldq.rostelekom.models.RefreshTokenDto
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -31,14 +37,44 @@ object ApiClient {
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS).
         addInterceptor { chain ->
+            val request = chain.request()
             val token = accessTokenProvider()
-            val request = if (token == null) chain.request()
-            else chain.request().newBuilder().header("Authorization", "Bearer $token").build()
-            chain.proceed(request)
+            if (token == null || request.url.encodedPath.startsWith("/api/auth")) chain.proceed(request)
+            else chain.proceed(request.newBuilder().header("Authorization", "Bearer $token").build())
         }
         // TODO оставить только в debug: на уровне BODY в логи попадают телефоны и токены
         .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
-        // TODO когда появятся токены: addInterceptor, который добавляет заголовок Authorization
+        .authenticator { _, response ->
+            val request = response.request
+            if (request.url.encodedPath.startsWith("/api/auth") || response.priorResponse != null) {
+                return@authenticator null
+            }
+
+            synchronized(this) {
+                val storage = AppContainer.tokenStorage
+                val sentToken = request.header("Authorization")?.removePrefix("Bearer ")
+                val savedToken = runBlocking { storage.getAccessToken() }
+                if (savedToken != null && savedToken != sentToken) {
+                    return@authenticator request.newBuilder()
+                        .header("Authorization", "Bearer $savedToken").build()
+                }
+
+                val refreshToken = runBlocking { storage.getRefreshToken() } ?: return@authenticator null
+                val tokens = try {
+                    runBlocking { create<AuthApi>().refresh(RefreshTokenDto(refreshToken)) }
+                } catch (e: HttpException) {
+                    if (e.code() in 400..499) runBlocking { storage.clear() }
+                    return@authenticator null
+                } catch (e: IOException) {
+                    return@authenticator null
+                }
+
+                val access = tokens.accessToken ?: return@authenticator null
+                val refresh = tokens.refreshToken ?: return@authenticator null
+                runBlocking { storage.save(access, refresh) }
+                request.newBuilder().header("Authorization", "Bearer $access").build()
+            }
+        }
         .build()
 
     private val retrofit: Retrofit by lazy {

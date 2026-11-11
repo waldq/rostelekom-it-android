@@ -4,6 +4,7 @@ import dev.waldq.rostelekom.data.local.TokenStorage
 import dev.waldq.rostelekom.data.remote.safeApiCall
 import dev.waldq.rostelekom.models.OtpRequestDto
 import dev.waldq.rostelekom.models.OtpVerifyDto
+import dev.waldq.rostelekom.models.RefreshTokenDto
 import dev.waldq.rostelekom.models.RegisterDto
 import dev.waldq.rostelekom.models.VerifyResponseDto
 
@@ -20,6 +21,8 @@ class RemoteAuthRepository(
     override suspend fun registerAccount(body: RegisterDto) =
         safeApiCall { api.registerAccount(body) }.also { saveTokens(it) }
 
+    override suspend fun refresh(body: RefreshTokenDto): VerifyResponseDto =
+        api.refresh(body) // ошибки ловятся в ApiClient, так надо
     private suspend fun saveTokens(response: VerifyResponseDto) {
         if (response.accessToken != null && response.refreshToken != null) {
             tokenStorage.save(accessToken = response.accessToken, refreshToken = response.refreshToken)
