@@ -68,7 +68,7 @@ class HomeViewModel(
                 } catch (e: ApiException) {
                     if (e.statusCode == 404) {   // у нового юзера счёта ещё нет, это не ошибка
                         _uiState.value =
-                            HomeUiState.NoAccounts(selectedItem = 0, greeting = greeting)
+                            HomeUiState.NoAccounts(greeting = greeting)
                     } else throw e
                 }
             } catch (e: ApiException) {

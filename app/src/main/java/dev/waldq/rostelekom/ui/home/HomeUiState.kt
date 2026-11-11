@@ -12,7 +12,6 @@ sealed interface HomeUiState {
     data object Loading : HomeUiState
 
     data class NoAccounts(
-        val selectedItem: Int,
         val greeting: String,
     ): HomeUiState
 

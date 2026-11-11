@@ -70,40 +70,11 @@ import androidx.core.net.toUri
 @Composable
 fun HomeScreen(
     content: HomeUiState.Content,
-    onProfile: () -> Unit,
     onChangeShowDeposit: () -> Unit,
     onUpdateDepositValue: (String) -> Unit,
     onPay: (String) -> Unit,
     ) {
-    Scaffold(
-        bottomBar = {
-            NavigationBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(75.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    NavBarItems.entries.forEachIndexed { index, items ->
-                        NavigationBarItem(
-                            selected = content.selectedItem == index,
-                            onClick = {
-                                when (items) {
-                                    NavBarItems.PROFILE -> onProfile()
-                                    else -> {}
-                                }
-                            } ,
-                            icon = { Text(items.title) }
-                        )
-                    }
-                }
-            }
-        }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         if (content.showDeposite) {
             ModalBottomSheet(
                 onDismissRequest = onChangeShowDeposit,
@@ -215,18 +186,6 @@ fun HomeScreen(
 }
 
 /**
- * enum для NavBar
- * TODO доделать навигацию
- * возможно можно вынести куда-нибудь, чтобы в истории тарифах и профиле переиспользовать
- */
-public final enum class NavBarItems(val title: String) {
-    MAIN("Главная"),
-    HISTORY("История"),
-    RATES("Тарифы"),
-    PROFILE("Профиль"),
-}
-
-/**
  * Экран «У вас пока нет лицевого счёта». Показывается, когда бэк на запрос счёта ответил 404.
  * Состояния внутри нет, только вёрстка.
  *
@@ -308,7 +267,6 @@ fun NoAccountScreen(
     }
 }
 
-
 @Composable
 fun CreateAccount(content: HomeUiState.NoAccounts, viewModel: HomeViewModel) {
    Scaffold() { innerPadding ->
@@ -343,7 +301,7 @@ fun CreateAccount(content: HomeUiState.NoAccounts, viewModel: HomeViewModel) {
 }
 
 @Composable
-fun HomeRoute(onProfile: () -> Unit, onSessionExpired: () -> Unit) {
+fun HomeRoute(onSessionExpired: () -> Unit) {
     val viewModel: HomeViewModel = viewModel{ HomeViewModel(
         userRepository = AppContainer.userRepository,
         billingRepository = AppContainer.billingRepository,
@@ -359,7 +317,6 @@ fun HomeRoute(onProfile: () -> Unit, onSessionExpired: () -> Unit) {
         }
         is HomeUiState.Content -> HomeScreen(
             content = state,
-            onProfile = onProfile,
             onChangeShowDeposit = viewModel::changeShowDeposit,
             onUpdateDepositValue = viewModel::updateDepositValue,
             onPay = { amount -> viewModel.createPayment(amount){ url ->
@@ -372,7 +329,7 @@ fun HomeRoute(onProfile: () -> Unit, onSessionExpired: () -> Unit) {
         )
         is HomeUiState.NoAccounts -> CreateAccount(state, viewModel)
         is HomeUiState.SessionExpired -> LaunchedEffect(Unit) { onSessionExpired() }
-        is HomeUiState.Error -> Text(state.message)   // потом сделать нормальный экран
+        is HomeUiState.Error -> Text(state.message)   // TODO потом сделать нормальный экран
     }
 }
 
@@ -569,7 +526,6 @@ private fun HomeContentPreview() {
                     ),
                 ),
             ),
-            onProfile = {},
             onChangeShowDeposit = {},
             onUpdateDepositValue = {},
             onPay = {},
