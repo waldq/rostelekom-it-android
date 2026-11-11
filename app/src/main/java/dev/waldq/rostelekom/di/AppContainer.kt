@@ -5,7 +5,9 @@ import android.content.Context
 import dev.waldq.rostelekom.data.local.TokenStorage
 import dev.waldq.rostelekom.data.remote.ApiClient
 import dev.waldq.rostelekom.data.repository.AuthApi
+import dev.waldq.rostelekom.data.repository.BillingApi
 import dev.waldq.rostelekom.data.repository.RemoteAuthRepository
+import dev.waldq.rostelekom.data.repository.RemoteBillingRepository
 import dev.waldq.rostelekom.data.repository.RemoteUserRepository
 import dev.waldq.rostelekom.data.repository.UserApi
 import kotlinx.coroutines.runBlocking
@@ -27,5 +29,9 @@ object AppContainer {
 
     val userRepository: UserApi by lazy {
         RemoteUserRepository(api = ApiClient.create<UserApi>())
+    }
+
+    val billingRepository: BillingApi by lazy {
+        RemoteBillingRepository(api = ApiClient.create<BillingApi>())
     }
 }

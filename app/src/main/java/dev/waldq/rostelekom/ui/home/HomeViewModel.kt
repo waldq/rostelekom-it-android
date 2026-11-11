@@ -1,22 +1,32 @@
 package dev.waldq.rostelekom.ui.home
 
 import android.annotation.SuppressLint
+import android.util.Log
+import androidx.collection.emptyLongSet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.waldq.rostelekom.data.repository.ApiException
+import dev.waldq.rostelekom.data.repository.BillingApi
 import dev.waldq.rostelekom.data.repository.UserApi
 import dev.waldq.rostelekom.models.AccountStatus
+import dev.waldq.rostelekom.models.CreatePaymentDto
+import dev.waldq.rostelekom.models.PaymentStatus
 import dev.waldq.rostelekom.models.TransactionType
 import dev.waldq.rostelekom.validation.allowInputPaymentAmount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class HomeViewModel(
-    private val repository: UserApi
+    private val userRepository: UserApi,
+    private val billingRepository: BillingApi,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow() // снаружи только неизменяемое состояние
+
+    private var key = UUID.randomUUID().toString()
 
     // данные грузим сразу при открытии экрана
     init {
@@ -25,14 +35,14 @@ class HomeViewModel(
 
     // TODO пока репозиториев для профиля и счёта нет, данные захардкожены.
     //  Потом здесь будут запросы /api/users/me, /api/billing/accounts/me и .../transactions
-    private fun load() {
+    fun load() {
         viewModelScope.launch {
             try {
-                val user = repository.getProfile()
+                val user = userRepository.getProfile()
                 val greeting = "Добрый день, ${user.firstName}"
                 try {
-                    val account = repository.getMyAccount()
-                    val transactions = repository.getMyTransactions()
+                    val account = userRepository.getMyAccount()
+                    val transactions = userRepository.getMyTransactions() // транзакции для отображения
                     _uiState.value = HomeUiState.Content(
                         depositeValue = "",
                         showDeposite = false,
@@ -73,7 +83,7 @@ class HomeViewModel(
 
     fun createAccount() {
         viewModelScope.launch {
-            val account = repository.openAccount()
+            val account = userRepository.openAccount()
             val current = _uiState.value
             if (current is HomeUiState.NoAccounts)
                 _uiState.value = HomeUiState.Content(
@@ -90,9 +100,12 @@ class HomeViewModel(
     }
 
     fun updateBalance(value: Double) {
-        val current = _uiState.value
-        if (current is HomeUiState.Content && current.balance != null)
-            _uiState.value = current.copy(balance = current.balance + value);
+        viewModelScope.launch {
+            val account = userRepository.getMyAccount()
+            val current = _uiState.value
+            if (current is HomeUiState.Content && current.balance != null)
+                _uiState.value = current.copy(balance = account.balance.toDouble());
+        }
     }
 
     fun updateDepositValue(value: String){
@@ -106,6 +119,28 @@ class HomeViewModel(
     fun changeShowDeposit(){
         val current = _uiState.value
         if (current is HomeUiState.Content)
-        _uiState.value = current.copy(showDeposite = !current.showDeposite);
+            _uiState.value = current.copy(showDeposite = !current.showDeposite);
+    }
+
+    fun createPayment(amount: String, onUrl: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val current = _uiState.value
+                if (current is HomeUiState.Content) {
+                    val last = billingRepository.getMyPayments().content.firstOrNull()
+                    if (last != null && last.status == PaymentStatus.PENDING && last.amount == amount.toDouble()) {
+                        last.confirmationUrl?.let(onUrl)
+                    } else {
+                        val payment = billingRepository.createPayment(
+                            key = UUID.randomUUID().toString(),
+                            body = CreatePaymentDto(amount)
+                        )
+                        payment.confirmationUrl?.let(onUrl)
+                    }
+                }
+            } catch (e: ApiException) {
+                Log.e("Home", "createPayment: ${e.statusCode} ${e.message}")
+            }
+        }
     }
 }

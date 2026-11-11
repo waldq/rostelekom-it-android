@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.waldq.rostelekom.di.AppContainer
@@ -56,6 +59,7 @@ import dev.waldq.rostelekom.ui.theme.Green
 import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
 import dev.waldq.rostelekom.ui.theme.White
 import java.util.Locale
+import androidx.core.net.toUri
 
 /**
  * Главный экран. Сам создаёт ViewModel, поэтому в навигации ничего менять не нужно.
@@ -69,7 +73,7 @@ fun HomeScreen(
     onProfile: () -> Unit,
     onChangeShowDeposit: () -> Unit,
     onUpdateDepositValue: (String) -> Unit,
-    updateBalance: (Double) -> Unit,
+    onPay: (String) -> Unit,
     ) {
     Scaffold(
         bottomBar = {
@@ -148,7 +152,7 @@ fun HomeScreen(
 
                     Button(
                         onClick = {
-                            updateBalance(content.depositeAmount)
+                            onPay(content.depositeValue)
                             onUpdateDepositValue(("0.0"))
                             onChangeShowDeposit()
                         },
@@ -340,9 +344,14 @@ fun CreateAccount(content: HomeUiState.NoAccounts, viewModel: HomeViewModel) {
 
 @Composable
 fun HomeRoute(onProfile: () -> Unit, onSessionExpired: () -> Unit) {
-    val viewModel: HomeViewModel = viewModel{ HomeViewModel(repository = AppContainer.userRepository) }
+    val viewModel: HomeViewModel = viewModel{ HomeViewModel(
+        userRepository = AppContainer.userRepository,
+        billingRepository = AppContainer.billingRepository,
+    ) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val context = LocalContext.current
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.load() }
 
     when (val state = uiState) {
         HomeUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -353,7 +362,13 @@ fun HomeRoute(onProfile: () -> Unit, onSessionExpired: () -> Unit) {
             onProfile = onProfile,
             onChangeShowDeposit = viewModel::changeShowDeposit,
             onUpdateDepositValue = viewModel::updateDepositValue,
-            updateBalance = viewModel::updateBalance,
+            onPay = { amount -> viewModel.createPayment(amount){ url ->
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+                } catch (e: ActivityNotFoundException) {
+                    Log.e("Home", "не могу открыть $url")
+                }
+            } },
         )
         is HomeUiState.NoAccounts -> CreateAccount(state, viewModel)
         is HomeUiState.SessionExpired -> LaunchedEffect(Unit) { onSessionExpired() }
@@ -557,7 +572,7 @@ private fun HomeContentPreview() {
             onProfile = {},
             onChangeShowDeposit = {},
             onUpdateDepositValue = {},
-            updateBalance = {},
+            onPay = {},
         )
     }
 }
