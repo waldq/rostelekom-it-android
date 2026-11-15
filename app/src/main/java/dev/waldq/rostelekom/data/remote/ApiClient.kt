@@ -1,5 +1,6 @@
 package dev.waldq.rostelekom.data.remote
 
+import dev.waldq.rostelekom.BuildConfig
 import dev.waldq.rostelekom.data.repository.AuthApi
 import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.models.RefreshTokenDto
@@ -22,9 +23,7 @@ import java.util.concurrent.TimeUnit
  * Создавать их нужно в `AppContainer`, а репозитории принимают их в конструктор.
  */
 object ApiClient {
-    // TODO адрес бэка. 10.0.2.2 - это localhost компьютера, если запускаешь на эмуляторе.
-    //  Для http (не https) в манифесте стоит android:usesCleartextTraffic="true"
-    private const val BASE_URL = "http://192.168.1.103:8080/"
+    private const val BASE_URL = BuildConfig.API_BASE_URL
 
     // DTO в проекте на kotlinx.serialization, поэтому парсим через Json, а не через Gson
     internal val json = Json {
@@ -42,8 +41,16 @@ object ApiClient {
             if (token == null || request.url.encodedPath.startsWith("/api/auth")) chain.proceed(request)
             else chain.proceed(request.newBuilder().header("Authorization", "Bearer $token").build())
         }
-        // TODO оставить только в debug: на уровне BODY в логи попадают телефоны и токены
-        .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = if (
+                BuildConfig.DEBUG &&
+                BuildConfig.ENABLE_HTTP_BODY_LOGGING
+            ) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
+        })
         .authenticator { _, response ->
             val request = response.request
             if (request.url.encodedPath.startsWith("/api/auth") || response.priorResponse != null) {

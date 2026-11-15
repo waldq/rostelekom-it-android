@@ -1,3 +1,16 @@
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+val apiBaseUrl = providers.gradleProperty("API_BASE_URL")
+    .orElse(providers.environmentVariable("API_BASE_URL"))
+    .orElse(localProperties.getProperty("API_BASE_URL") ?: "https://10.0.2.2:8080/")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -28,12 +41,53 @@ android {
             }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"${apiBaseUrl.get()}\""
+            )
+
+            buildConfigField(
+                "boolean",
+                "ENABLE_HTTP_BODY_LOGGING",
+                "true"
+            )
+        }
+
+        create("prod") {
+            dimension = "environment"
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://10.0.2.2:8080/\"" // TODO в проде поменять на реальный адрес
+            )
+
+            buildConfigField(
+                "boolean",
+                "ENABLE_HTTP_BODY_LOGGING",
+                "false"
+            )
+        }
+    }
+
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
