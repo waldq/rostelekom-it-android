@@ -23,6 +23,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable object Profile
 
+@Serializable object Speedtest
+
 /**
  * enum для NavBar
  */

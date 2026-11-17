@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -48,6 +49,7 @@ import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
 @Composable
 fun ProfileRoute(
     onLogout: () -> Unit,
+    openSpeedtest: () -> Unit,
     viewModel: ProfileViewModel = viewModel { ProfileViewModel(
         userRepository = AppContainer.userRepository,
         billingRepository = AppContainer.billingRepository,
@@ -58,6 +60,7 @@ fun ProfileRoute(
     ProfileScreen(
         uiState = uiState,
         onLogout = onLogout,
+        openSpeedtest = openSpeedtest,
     )
 }
 
@@ -66,7 +69,8 @@ fun ProfileRoute(
 fun ProfileScreen(
     uiState: ProfileUiState,
     modifier: Modifier = Modifier,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    openSpeedtest: () -> Unit,
 ) {
     if (uiState is ProfileUiState.Content) {
         Scaffold(
@@ -177,6 +181,23 @@ fun ProfileScreen(
                     ListItem(
                         headlineContent = {
                             TextButton(
+                                onClick = openSpeedtest,
+                                colors = ButtonDefaults.buttonColors().copy(
+                                    contentColor = MaterialTheme.colorScheme.onSurface,
+                                    containerColor = Color.Transparent,
+                                )
+                            ) {
+                                Text(
+                                    text = "Проверить скорость интернета",
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        },
+                    )
+                    Spacer(modifier.height(1.dp).background(MaterialTheme.colorScheme.onPrimary))
+                    ListItem(
+                        headlineContent = {
+                            TextButton(
                                 onClick = { isLoggingOut.value = true },
                                 colors = ButtonDefaults.buttonColors().copy(
                                     contentColor = MaterialTheme.colorScheme.error,
@@ -216,8 +237,10 @@ private fun ProfileScreenPreview() {
                 lastName = "Иванов",
                 middleName = "Иванович",
                 accountNumber = "1234 5678 9012 3456"
-            )
-        ) {}
+            ),
+            onLogout = {},
+            openSpeedtest = {},
+        )
     }
 }
 

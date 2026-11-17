@@ -31,6 +31,7 @@ import dev.waldq.rostelekom.ui.login.LoginRoute
 import dev.waldq.rostelekom.ui.otp.OtpRoute
 import dev.waldq.rostelekom.ui.profile.ProfileRoute
 import dev.waldq.rostelekom.ui.registration.RegistrationRoute
+import dev.waldq.rostelekom.ui.speedtest.SpeedtestRoute
 
 import kotlinx.coroutines.launch
 
@@ -159,7 +160,7 @@ fun AppNavHost(
                 }
             }
 
-            composable <Profile> {
+            composable<Profile> {
                 ProfileRoute(
                     onLogout = {
                         scope.launch {
@@ -168,7 +169,18 @@ fun AppNavHost(
                                 popUpTo(navController.graph.id) { inclusive = true }
                             }
                         }
+                    },
+                    openSpeedtest = {
+                        navController.navigate(Speedtest) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
                     }
+                )
+            }
+
+            composable<Speedtest> {
+                SpeedtestRoute(
+                    onBack = { navController.popBackStack() },
                 )
             }
         }

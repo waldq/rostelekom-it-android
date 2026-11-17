@@ -112,7 +112,8 @@ fun RegistrationScreen(
                         )
                     }
                 },
-            ) },
+            )
+        },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { innerPadding ->
         Column(Modifier
