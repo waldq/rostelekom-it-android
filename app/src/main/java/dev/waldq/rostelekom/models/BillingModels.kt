@@ -23,7 +23,7 @@ enum class AccountStatus {
 data class AccountDto(
     val id: String, // UUID на самом деле, просто в мобилке оно вряд ли будет использоваться
     val number: String,
-    val balance: Money, // TODO либо написать сериализатор, либо заменить на строку
+    val balance: Money,
     val currency: String,
     val status: AccountStatus
 )
@@ -88,7 +88,7 @@ data class PageInfo(
 @Serializable
 data class PaymentDto(
     val id: String,
-    val amount: Double,
+    val amount: Double, // TODO
     val currency: String,
     val status: PaymentStatus,
     val confirmationUrl: String? = null,

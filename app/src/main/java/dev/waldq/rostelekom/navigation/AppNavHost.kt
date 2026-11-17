@@ -29,6 +29,7 @@ import dev.waldq.rostelekom.ui.home.HomeRoute
 import dev.waldq.rostelekom.ui.profile.ProfileScreen
 import dev.waldq.rostelekom.ui.login.LoginRoute
 import dev.waldq.rostelekom.ui.otp.OtpRoute
+import dev.waldq.rostelekom.ui.profile.ProfileRoute
 import dev.waldq.rostelekom.ui.registration.RegistrationRoute
 
 import kotlinx.coroutines.launch
@@ -136,7 +137,7 @@ fun AppNavHost(
             }
 
             composable<Home> {
-                HomeRoute (
+                HomeRoute(
                     onSessionExpired = {
                         scope.launch {
                             AppContainer.tokenStorage.clear()
@@ -159,14 +160,16 @@ fun AppNavHost(
             }
 
             composable <Profile> {
-                ProfileScreen {
-                    scope.launch {
-                        AppContainer.tokenStorage.clear()
-                        navController.navigate(Login) {
-                            popUpTo(navController.graph.id) { inclusive = true }
+                ProfileRoute(
+                    onLogout = {
+                        scope.launch {
+                            AppContainer.tokenStorage.clear()
+                            navController.navigate(Login) {
+                                popUpTo(navController.graph.id) { inclusive = true }
+                            }
                         }
                     }
-                }
+                )
             }
         }
     }
