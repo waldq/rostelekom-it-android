@@ -180,7 +180,11 @@ fun AppNavHost(
 
             composable<Speedtest> {
                 SpeedtestRoute(
-                    onBack = { navController.popBackStack() },
+                    onBack = {
+                        navController.navigate(Profile) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    },
                 )
             }
         }

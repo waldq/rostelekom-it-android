@@ -1,5 +1,8 @@
 package dev.waldq.rostelekom.ui.profile
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,15 +49,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.waldq.rostelekom.R
 import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
+import androidx.core.net.toUri
 
 @Composable
 fun ProfileRoute(
     onLogout: () -> Unit,
     openSpeedtest: () -> Unit,
-    viewModel: ProfileViewModel = viewModel { ProfileViewModel(
-        userRepository = AppContainer.userRepository,
-        billingRepository = AppContainer.billingRepository,
-    ) }
+    viewModel: ProfileViewModel = viewModel {
+        ProfileViewModel(
+            userRepository = AppContainer.userRepository,
+            billingRepository = AppContainer.billingRepository,
+        )
+    },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -90,6 +97,7 @@ fun ProfileScreen(
             containerColor = MaterialTheme.colorScheme.surface,
         ) { innerPadding ->
             val isLoggingOut = remember { mutableStateOf(false) }
+            val openedBrowser = remember { mutableStateOf(true) }
             if (isLoggingOut.value) {
                 AlertDialog(
                     onDismissRequest = { isLoggingOut.value = false },
@@ -113,6 +121,22 @@ fun ProfileScreen(
                 )
             }
 
+            if (!openedBrowser.value) {
+                AlertDialog(
+                    onDismissRequest = { openedBrowser.value = true },
+                    title = { Text("Не получилось открыть ссылку") },
+                    confirmButton = {},
+                    dismissButton = {
+                        TextButton(onClick = {
+                            openedBrowser.value = true
+                        }) {
+                            Text("Ок")
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.surface,
+                )
+            }
+
             Column(modifier = Modifier
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -125,9 +149,10 @@ fun ProfileScreen(
                     ),
                     elevation = CardDefaults.elevatedCardElevation(defaultElevation = 10.dp)
                 ) {
-                    Row(modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth(),
+                    Row(
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(
@@ -171,6 +196,20 @@ fun ProfileScreen(
                             )
                         }
                     )
+                    Spacer(modifier.height(1.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+                    ListItem(
+                        headlineContent = { Text(uiState.accountNumber) },
+                        modifier = Modifier.fillMaxWidth(),
+                        overlineContent = { Text("Лицевой счёт") },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_wallet),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    )
                 }
 
                 Card(modifier = Modifier
@@ -194,7 +233,33 @@ fun ProfileScreen(
                             }
                         },
                     )
-                    Spacer(modifier.height(1.dp).background(MaterialTheme.colorScheme.onPrimary))
+                    Spacer(modifier.height(1.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+                    ListItem(
+                        headlineContent = {
+                            val context = LocalContext.current
+                            TextButton(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        data = Uri.parse("https://msk.rt.ru/map_mvno")
+                                    }
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: ActivityNotFoundException) {
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors().copy(
+                                    contentColor = MaterialTheme.colorScheme.onSurface,
+                                    containerColor = Color.Transparent,
+                                )
+                            ) {
+                                Text(
+                                    text = "Посмотреть зону покрытия",
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        }
+                    )
+                    Spacer(modifier.height(1.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
                     ListItem(
                         headlineContent = {
                             TextButton(
