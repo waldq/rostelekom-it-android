@@ -3,6 +3,7 @@ package dev.waldq.rostelekom.ui.profile
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +25,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,7 +48,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.waldq.rostelekom.R
 import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
-import androidx.core.net.toUri
 
 @Composable
 fun ProfileRoute(

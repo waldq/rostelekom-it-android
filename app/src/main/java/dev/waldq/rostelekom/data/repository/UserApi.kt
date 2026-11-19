@@ -1,7 +1,7 @@
 package dev.waldq.rostelekom.data.repository
 
 import dev.waldq.rostelekom.models.AccountDto
-import dev.waldq.rostelekom.models.PagedModel
+import dev.waldq.rostelekom.models.PageDto
 import dev.waldq.rostelekom.models.TransactionDto
 import dev.waldq.rostelekom.models.UserProfileDto
 import retrofit2.http.GET
@@ -18,5 +18,5 @@ interface UserApi {
     suspend fun getMyAccount(): AccountDto
 
     @GET("/api/billing/accounts/me/transactions")
-    suspend fun getMyTransactions(): PagedModel<TransactionDto>
+    suspend fun getMyTransactions(): PageDto<TransactionDto>
 }

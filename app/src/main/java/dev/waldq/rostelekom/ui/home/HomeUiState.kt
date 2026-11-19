@@ -1,6 +1,7 @@
 package dev.waldq.rostelekom.ui.home
 
 import dev.waldq.rostelekom.models.AccountStatus
+import kotlin.uuid.Uuid
 
 /**
  * Состояние главного экрана: либо грузимся, либо показываем данные.
@@ -50,7 +51,7 @@ sealed interface HomeUiState {
  * @property isIncome приход (зелёный) или расход (красный).
  */
 data class TransactionUi(
-    val id: String,
+    val id: Uuid,
     val title: String,
     val date: String,
     val amount: String,

@@ -2,7 +2,6 @@ package dev.waldq.rostelekom.ui.home
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.collection.emptyLongSet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.waldq.rostelekom.data.repository.ApiException
@@ -15,9 +14,9 @@ import dev.waldq.rostelekom.models.TransactionType
 import dev.waldq.rostelekom.validation.allowInputPaymentAmount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.uuid.Uuid
 
 class HomeViewModel(
     private val userRepository: UserApi,
@@ -128,12 +127,12 @@ class HomeViewModel(
                 val current = _uiState.value
                 if (current is HomeUiState.Content) {
                     val last = billingRepository.getMyPayments().content.firstOrNull()
-                    if (last != null && last.status == PaymentStatus.PENDING && last.amount == amount.toDouble()) {
+                    if (last != null && last.status == PaymentStatus.PENDING && last.amount.toDouble() == amount.toDouble()) {
                         last.confirmationUrl?.let(onUrl)
                     } else {
                         val payment = billingRepository.createPayment(
-                            key = UUID.randomUUID().toString(),
-                            body = CreatePaymentDto(amount)
+                            key = Uuid.random().toString(),
+                            body = CreatePaymentDto(amount.toBigDecimal())
                         )
                         payment.confirmationUrl?.let(onUrl)
                     }

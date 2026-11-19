@@ -1,6 +1,7 @@
 package dev.waldq.rostelekom.models
 
 import kotlinx.serialization.Serializable
+import kotlin.uuid.Uuid
 
 
 /**
@@ -65,7 +66,7 @@ data class VerifyResponseDto(
     val refreshToken: String? = null,
     val tokenType: String? = null,
     val expiresInSeconds: Long,
-    val userId: String? = null,
+    val userId: Uuid? = null,
     val registrationToken: String? = null,
 )
 

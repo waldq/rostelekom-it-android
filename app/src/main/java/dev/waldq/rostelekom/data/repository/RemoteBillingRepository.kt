@@ -2,7 +2,7 @@ package dev.waldq.rostelekom.data.repository;
 
 import dev.waldq.rostelekom.data.remote.safeApiCall
 import dev.waldq.rostelekom.models.CreatePaymentDto
-import dev.waldq.rostelekom.models.PagedModel
+import dev.waldq.rostelekom.models.PageDto
 import dev.waldq.rostelekom.models.PaymentDto
 
 class RemoteBillingRepository(private val api: BillingApi): BillingApi {
@@ -15,7 +15,7 @@ class RemoteBillingRepository(private val api: BillingApi): BillingApi {
     ): PaymentDto =
         safeApiCall { api.createPayment(key=key, body=body) }
 
-    override suspend fun getMyPayments(): PagedModel<PaymentDto> = // TODO добавить количество платежей
+    override suspend fun getMyPayments(): PageDto<PaymentDto> = // TODO добавить количество платежей
         safeApiCall { api.getMyPayments() }
 
 }

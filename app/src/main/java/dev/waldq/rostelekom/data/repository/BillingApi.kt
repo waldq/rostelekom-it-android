@@ -2,9 +2,8 @@ package dev.waldq.rostelekom.data.repository
 
 import dev.waldq.rostelekom.models.AccountDto
 import dev.waldq.rostelekom.models.CreatePaymentDto
-import dev.waldq.rostelekom.models.PagedModel
+import dev.waldq.rostelekom.models.PageDto
 import dev.waldq.rostelekom.models.PaymentDto
-import dev.waldq.rostelekom.models.TransactionPageDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -20,7 +19,7 @@ interface BillingApi {
 //    suspend fun getTransactions(
 //        @Query("page") page: Int,
 //        @Query("size") size: Int,
-//    ): TransactionPageDto
+//    ): PageDto<TransactionDto>
 
     @GET("api/billing/payments/{id}")
     suspend fun getMyPayment(
@@ -34,5 +33,5 @@ interface BillingApi {
     ): PaymentDto
 
     @GET("api/billing/payments")
-    suspend fun getMyPayments(): PagedModel<PaymentDto>
+    suspend fun getMyPayments(): PageDto<PaymentDto>
 }

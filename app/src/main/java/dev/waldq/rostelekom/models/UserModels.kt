@@ -1,6 +1,7 @@
 package dev.waldq.rostelekom.models
 
 import kotlinx.serialization.Serializable
+import kotlin.uuid.Uuid
 
 
 /**
@@ -14,7 +15,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class UserProfileDto(
-    val id: String, // UUID на самом деле, просто в мобилке оно вряд ли будет использоваться
+    val id: Uuid,
     val phone: String,
     val firstName: String,
     val lastName: String,

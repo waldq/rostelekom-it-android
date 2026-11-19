@@ -60,6 +60,7 @@ import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
 import dev.waldq.rostelekom.ui.theme.White
 import java.util.Locale
 import androidx.core.net.toUri
+import kotlin.uuid.Uuid
 
 /**
  * Главный экран. Сам создаёт ViewModel, поэтому в навигации ничего менять не нужно.
@@ -319,9 +320,12 @@ fun HomeRoute(onSessionExpired: () -> Unit) {
             content = state,
             onChangeShowDeposit = viewModel::changeShowDeposit,
             onUpdateDepositValue = viewModel::updateDepositValue,
-            onPay = { amount -> viewModel.createPayment(amount){ url ->
+            onPay = { amount -> viewModel.createPayment(amount) { url ->
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = Uri.parse(url)
+                }
                 try {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+                    context.startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
                     Log.e("Home", "не могу открыть $url")
                 }
@@ -511,14 +515,14 @@ private fun HomeContentPreview() {
                 status = AccountStatus.ACTIVE,
                 transactions = listOf(
                     TransactionUi(
-                        "1",
+                        Uuid.random(),
                         "Пополнение баланса",
                         "28 окт., 14:05",
                         "+500,00 ₽",
                         isIncome = true
                     ),
                     TransactionUi(
-                        "2",
+                        Uuid.random(),
                         "Абонентская плата",
                         "25 окт., 00:00",
                         "−650,00 ₽",
