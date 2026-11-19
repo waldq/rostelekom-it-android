@@ -1,14 +1,17 @@
 package dev.waldq.rostelekom.ui.home
 
 import dev.waldq.rostelekom.models.AccountStatus
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * Состояние главного экрана: либо грузимся, либо показываем данные.
  */
 sealed interface HomeUiState {
 
-    data object SessionExpired : HomeUiState
-    data class Error(val message: String) : HomeUiState
+    data object SessionExpired : HomeUiState // Если не авторизован
+    data class Error(val message: String) : HomeUiState // Иная ошибка
     data object Loading : HomeUiState
 
     data class NoAccounts(
@@ -55,4 +58,12 @@ data class TransactionUi(
     val date: String,
     val amount: String,
     val isIncome: Boolean,
-)
+){
+    companion object {
+        fun toRuDate(date: String): String {
+            return ZonedDateTime.parse(date)
+                .withZoneSameInstant(java.time.ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss", Locale("ru")))
+        }
+    }
+}

@@ -25,6 +25,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable object Speedtest
 
+@Serializable object HomeDeepLink
+
 /**
  * enum для NavBar
  */

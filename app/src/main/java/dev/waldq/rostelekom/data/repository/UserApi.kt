@@ -18,5 +18,5 @@ interface UserApi {
     suspend fun getMyAccount(): AccountDto
 
     @GET("/api/billing/accounts/me/transactions")
-    suspend fun getMyTransactions(): PagedModel<TransactionDto>
+    suspend fun getMyTransactions(): PagedModel<TransactionDto> // TODO сделать чтобы можно было выбирать сколько выводить
 }

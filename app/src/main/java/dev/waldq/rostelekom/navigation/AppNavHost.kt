@@ -22,9 +22,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 
 import dev.waldq.rostelekom.di.AppContainer
+import dev.waldq.rostelekom.ui.history.HistoryRoute
 import dev.waldq.rostelekom.ui.home.HomeRoute
 import dev.waldq.rostelekom.ui.profile.ProfileScreen
 import dev.waldq.rostelekom.ui.login.LoginRoute
@@ -149,9 +151,7 @@ fun AppNavHost(
             }
 
             composable<History> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "История - TODO")
-                }
+                HistoryRoute()
             }
 
             composable<Tariffs> {
@@ -183,6 +183,21 @@ fun AppNavHost(
                     onBack = {
                         navController.navigate(Profile) {
                             popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    },
+                )
+            }
+
+            composable<HomeDeepLink>(
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "rostelekom://home" }
+                )
+            ) {
+                HomeRoute(
+                    onSessionExpired = {
+                        scope.launch {
+                            AppContainer.tokenStorage.clear()
+                            navController.navigate(Login) { popUpTo(navController.graph.id) { inclusive = true } }
                         }
                     },
                 )

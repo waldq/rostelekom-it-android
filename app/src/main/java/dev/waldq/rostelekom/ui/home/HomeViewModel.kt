@@ -12,6 +12,7 @@ import dev.waldq.rostelekom.models.AccountStatus
 import dev.waldq.rostelekom.models.CreatePaymentDto
 import dev.waldq.rostelekom.models.PaymentStatus
 import dev.waldq.rostelekom.models.TransactionType
+import dev.waldq.rostelekom.ui.home.TransactionUi.Companion.toRuDate
 import dev.waldq.rostelekom.validation.allowInputPaymentAmount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,12 +55,8 @@ class HomeViewModel(
                         transactions = transactions.content.map {
                             TransactionUi(
                                 id = it.id,
-                                title = when (it.type) {
-                                    TransactionType.TOP_UP -> "Пополнение баланса"
-                                    TransactionType.CHARGE -> "Списание"
-                                    TransactionType.REFUND -> "Возврат"
-                                },
-                                date = it.createdAt,
+                                title = it.type.title,
+                                date = toRuDate(it.createdAt),
                                 amount = it.amount.toPlainString(),
                                 isIncome = it.type != TransactionType.CHARGE,
                             )
