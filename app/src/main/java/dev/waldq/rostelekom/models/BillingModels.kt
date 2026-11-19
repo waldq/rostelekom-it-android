@@ -51,7 +51,9 @@ data class TransactionDto(
     val description: String? = null,
     val paymentId: String? = null,     // UUID? → String?
     val createdAt: String              // Instant → ISO-8601 строка
-)
+) {
+
+}
 
 enum class PaymentStatus {
     PENDING,         // создан, ждём оплату
@@ -67,10 +69,10 @@ data class TransactionPageDto(
     val page: PageInfo,
 )
 
-enum class TransactionType {
-    TOP_UP, // пополнение (+)
-    CHARGE, // списание, например абонентская плата (-)
-    REFUND, // возврат (+)
+enum class TransactionType(val title: String) {
+    TOP_UP("Пополнение баласа"), // пополнение (+)
+    CHARGE("Списание"), // списание, например абонентская плата (-)
+    REFUND("Возврат"); // возврат (+)
 }
 
 

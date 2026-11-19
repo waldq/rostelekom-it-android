@@ -28,8 +28,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -60,6 +58,7 @@ import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
 import dev.waldq.rostelekom.ui.theme.White
 import java.util.Locale
 import androidx.core.net.toUri
+import dev.waldq.rostelekom.ui.theme.TransactionsCardColor
 
 /**
  * Главный экран. Сам создаёт ViewModel, поэтому в навигации ничего менять не нужно.
@@ -420,7 +419,7 @@ private fun TransactionsCard(transactions: List<TransactionUi>) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = TransactionsCardColor,
         tonalElevation = 0.dp, // иначе Material подмешает в белый фиолетовый оттенок
         shadowElevation = 6.dp,
     ) {

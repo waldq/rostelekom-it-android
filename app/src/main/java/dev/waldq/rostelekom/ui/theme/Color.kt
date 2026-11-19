@@ -35,6 +35,8 @@ val ButtonContainerDisabledGray = Color(0xFFE4E5E9)
 
 val ButtonTextDisabledGray = Color(0xFFA3A8B0)
 
+val TransactionsCardColor = Color(0xFFF5F7FA)
+
 val BalanceGradient = Brush.linearGradient(
     colors = listOf(BalanceStart, BalanceMiddle, BalanceEnd),
 )

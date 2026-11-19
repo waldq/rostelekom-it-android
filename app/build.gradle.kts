@@ -25,7 +25,7 @@ android {
 
     defaultConfig {
         applicationId = "dev.waldq.rostelekom"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -92,6 +92,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.work.runtime.ktx)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.kotlinx.serialization)
     implementation(libs.okhttp)
