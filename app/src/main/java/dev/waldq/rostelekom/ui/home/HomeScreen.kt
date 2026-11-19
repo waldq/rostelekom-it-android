@@ -4,12 +4,14 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,20 +20,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -42,24 +40,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.waldq.rostelekom.di.AppContainer
 import dev.waldq.rostelekom.models.AccountStatus
 import dev.waldq.rostelekom.ui.components.AmountVisualTransformation
-import dev.waldq.rostelekom.ui.login.LoginScreen
 import dev.waldq.rostelekom.ui.theme.BalanceGradient
 import dev.waldq.rostelekom.ui.theme.Green
 import dev.waldq.rostelekom.ui.theme.RostelekomitandroidTheme
 import dev.waldq.rostelekom.ui.theme.White
 import java.util.Locale
-import kotlin.math.abs
+import androidx.core.net.toUri
 
 /**
  * Главный экран. Сам создаёт ViewModel, поэтому в навигации ничего менять не нужно.
@@ -68,40 +68,16 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UseKtx", "QueryPermissionsNeeded")
 @Composable
-fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
-    val viewModel: HomeViewModel = viewModel()
-    Scaffold(
-        bottomBar = {
-            NavigationBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(75.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    NavBarItems.entries.forEachIndexed { index, items ->
-                        NavigationBarItem(
-                            selected = content.selectedItem == index,
-                            onClick = {
-                                when (items) {
-                                    NavBarItems.PROFILE -> onProfile()
-                                    else -> {}
-                                }
-                            } ,
-                            icon = { Text(items.title) }
-                        )
-                    }
-                }
-            }
-        }
-    ) { innerPadding ->
+fun HomeScreen(
+    content: HomeUiState.Content,
+    onChangeShowDeposit: () -> Unit,
+    onUpdateDepositValue: (String) -> Unit,
+    onPay: (String) -> Unit,
+    ) {
+    Scaffold { innerPadding ->
         if (content.showDeposite) {
             ModalBottomSheet(
-                onDismissRequest = { viewModel.changeShowDeposite() },
+                onDismissRequest = onChangeShowDeposit,
             ) {
                 Column(
                     modifier = Modifier
@@ -122,7 +98,7 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
 
                     OutlinedTextField(
                         value = content.depositeValue, //String.format(Locale("ru", "RU"), "%,.2f ₽", content.depositeValue),
-                        onValueChange = viewModel::updateDepositeValue,
+                        onValueChange = onUpdateDepositValue,
                         visualTransformation = AmountVisualTransformation,
                         modifier = Modifier.fillMaxWidth(),
                         label = {Text("Сумма")},
@@ -138,7 +114,7 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
                     ) {
                         listOf(100.0 to "+100 ₽", 500.0 to "+500 ₽", 1000.0 to "+1 000 ₽").forEach { (value, label) ->
                             Button(
-                                onClick = { viewModel.updateDepositeValue((value + content.depositeAmount).toString()) }
+                                onClick = { onUpdateDepositValue((value + content.depositeAmount).toString()) }
                             ) {
                                 Text(label)
                             }
@@ -147,9 +123,9 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
 
                     Button(
                         onClick = {
-                            viewModel.updateBalance(content.depositeAmount)
-                            viewModel.updateDepositeValue("0.0")
-                            viewModel.changeShowDeposite()
+                            onPay(content.depositeValue)
+                            onUpdateDepositValue(("0.0"))
+                            onChangeShowDeposit()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -193,7 +169,7 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
 
             item {
                 Button(
-                    onClick = { viewModel.changeShowDeposite() },
+                    onClick = onChangeShowDeposit,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -210,30 +186,150 @@ fun HomeScreen(content: HomeUiState.Content, onProfile: () -> Unit) {
 }
 
 /**
- * enum для NavBar
- * TODO доделать навигацию
- * возможно можно вынести куда-нибудь, чтобы в истории тарифах и профиле переиспользовать
+ * Экран «У вас пока нет лицевого счёта». Показывается, когда бэк на запрос счёта ответил 404.
+ * Состояния внутри нет, только вёрстка.
+ *
+ * @param onOpenAccount кнопка «Открыть счёт» (запрос `POST api/billing/accounts`).
  */
-public final enum class NavBarItems(val title: String) {
-    MAIN("Главная"),
-    HISTORY("История"),
-    RATES("Тарифы"),
-    PROFILE("Профиль"),
+@Composable
+fun NoAccountScreen(
+    onOpenAccount: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .padding(16.dp),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp, // иначе Material подмешает в белый фиолетовый оттенок
+            shadowElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 48.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                // квадрат со знаком рубля
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(20.dp),
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "₽",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontSize = 34.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        ),
+                    )
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                Text(
+                    text = "У вас пока нет лицевого счёта",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center,
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Откройте его, чтобы пополнять баланс и смотреть историю операций.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                Button(
+                    onClick = onOpenAccount,
+                    modifier = Modifier.height(52.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 28.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                ) {
+                    Text("Открыть счёт")
+                }
+            }
+        }
+    }
 }
 
 @Composable
-fun HomeRoute(onProfile: () -> Unit) {
-    val viewModel: HomeViewModel = viewModel()
+fun CreateAccount(content: HomeUiState.NoAccounts, viewModel: HomeViewModel) {
+   Scaffold() { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .statusBarsPadding()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(13.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                Column {
+                    Text(
+                        text = "ЛИЧНЫЙ КАБИНЕТ",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.6.sp),
+                    )
+                    Text(
+                        text = content.greeting,
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
+                }
+            }
+            item{ NoAccountScreen(viewModel::createAccount) }
+
+        }
+    }
+}
+
+@Composable
+fun HomeRoute(onSessionExpired: () -> Unit) {
+    val viewModel: HomeViewModel = viewModel{ HomeViewModel(
+        userRepository = AppContainer.userRepository,
+        billingRepository = AppContainer.billingRepository,
+    ) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val context = LocalContext.current
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.load() }
 
     when (val state = uiState) {
         HomeUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Loading()
         }
         is HomeUiState.Content -> HomeScreen(
-            state, onProfile
+            content = state,
+            onChangeShowDeposit = viewModel::changeShowDeposit,
+            onUpdateDepositValue = viewModel::updateDepositValue,
+            onPay = { amount -> viewModel.createPayment(amount){ url ->
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+                } catch (e: ActivityNotFoundException) {
+                    Log.e("Home", "не могу открыть $url")
+                }
+            } },
         )
+        is HomeUiState.NoAccounts -> CreateAccount(state, viewModel)
+        is HomeUiState.SessionExpired -> LaunchedEffect(Unit) { onSessionExpired() }
+        is HomeUiState.Error -> Text(state.message)   // TODO потом сделать нормальный экран
     }
 }
 
@@ -430,6 +526,9 @@ private fun HomeContentPreview() {
                     ),
                 ),
             ),
-        ) {  }
+            onChangeShowDeposit = {},
+            onUpdateDepositValue = {},
+            onPay = {},
+        )
     }
 }

@@ -1,5 +1,7 @@
 package dev.waldq.rostelekom.models
 
+import dev.waldq.rostelekom.models.serialization.BigDecimalSerializer
+import dev.waldq.rostelekom.models.serialization.Money
 import kotlinx.serialization.Serializable
 
 // TODO
@@ -21,9 +23,76 @@ enum class AccountStatus {
 data class AccountDto(
     val id: String, // UUID на самом деле, просто в мобилке оно вряд ли будет использоваться
     val number: String,
-    val balance: String, // TODO либо написать сериализатор, либо заменить на строку
+    val balance: Money,
     val currency: String,
     val status: AccountStatus
+)
+
+@Serializable
+data class PagedModel<T>(
+    val content: List<T>,
+    val page: PageMetadata
+)
+
+@Serializable
+data class PageMetadata(
+    val size: Long,
+    val number: Long,
+    val totalElements: Long,
+    val totalPages: Long
+)
+
+@Serializable
+data class TransactionDto(
+    val id: String,                    // UUID → строка
+    val type: TransactionType,
+    val amount: Money,
+    val balanceAfter: Money,
+    val description: String? = null,
+    val paymentId: String? = null,     // UUID? → String?
+    val createdAt: String              // Instant → ISO-8601 строка
+)
+
+enum class PaymentStatus {
+    PENDING,         // создан, ждём оплату
+    SUCCEEDED,       // деньги зачислены
+    CANCELED,        // отменён или не прошёл
+    REFUND_REQUIRED, // оплата пришла, когда счёт уже закрыт
+}
+
+
+@Serializable
+data class TransactionPageDto(
+    val content: List<TransactionDto>,
+    val page: PageInfo,
+)
+
+enum class TransactionType {
+    TOP_UP, // пополнение (+)
+    CHARGE, // списание, например абонентская плата (-)
+    REFUND, // возврат (+)
+}
+
+
+
+/** Служебная часть страницы: Spring кладёт её во вложенный объект `page`. */
+@Serializable
+data class PageInfo(
+    val size: Int,
+    val number: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+)
+
+
+@Serializable
+data class PaymentDto(
+    val id: String,
+    val amount: Double, // TODO
+    val currency: String,
+    val status: PaymentStatus,
+    val confirmationUrl: String? = null,
+    val createdAt: String,
 )
 
 

@@ -24,7 +24,7 @@ fun filterUsername(raw: String): String {
  * Выполняется на каждый введённый символ в строке имени или фамилии.
  */
 fun filterName(raw: String): String {
-    return raw.filter { it.isLetter() }.take(MAX_NAME_LEN)
+    return raw.filter { it.isLetter() || it in " -'’" }.take(MAX_NAME_LEN)
 }
 
 /**

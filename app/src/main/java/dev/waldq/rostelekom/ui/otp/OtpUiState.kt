@@ -10,6 +10,7 @@ data class OtpUiState(
     val retryAfterSeconds: Long = 0,
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
+    val registrationToken: String? = null,
 ) {
     private val minutes = retryAfterSeconds / 60
     private val seconds = retryAfterSeconds % 60

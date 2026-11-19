@@ -236,6 +236,7 @@ fun OtpRoute(
     devCode: String?,
     resendAfterSeconds: Long,
     onBack: () -> Unit,
+    onRegistrationRequired: (String) -> Unit,
     onLoggedIn: () -> Unit,
     viewModel: OtpViewModel = viewModel { OtpViewModel(
         phone = phone,
@@ -250,6 +251,13 @@ fun OtpRoute(
         if (uiState.isLoggedIn) {
             onLoggedIn()
             viewModel.onLoggedInHandled()
+        }
+    }
+
+    LaunchedEffect(uiState.registrationToken) {
+        uiState.registrationToken?.let {
+            onRegistrationRequired(it)
+            viewModel.onRegistrationHandled()
         }
     }
 
