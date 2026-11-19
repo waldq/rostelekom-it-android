@@ -2,14 +2,18 @@ package dev.waldq.rostelekom.di
 
 import android.annotation.SuppressLint
 import android.content.Context
+
 import dev.waldq.rostelekom.data.local.TokenStorage
 import dev.waldq.rostelekom.data.remote.ApiClient
 import dev.waldq.rostelekom.data.repository.AuthApi
 import dev.waldq.rostelekom.data.repository.BillingApi
 import dev.waldq.rostelekom.data.repository.RemoteAuthRepository
 import dev.waldq.rostelekom.data.repository.RemoteBillingRepository
+import dev.waldq.rostelekom.data.repository.RemoteTariffsRepository
 import dev.waldq.rostelekom.data.repository.RemoteUserRepository
+import dev.waldq.rostelekom.data.repository.TariffsApi
 import dev.waldq.rostelekom.data.repository.UserApi
+
 import kotlinx.coroutines.runBlocking
 
 // Здесь создаются и хранятся все репозитории.
@@ -33,5 +37,9 @@ object AppContainer {
 
     val billingRepository: BillingApi by lazy {
         RemoteBillingRepository(api = ApiClient.create<BillingApi>())
+    }
+
+    val tariffsRepository: TariffsApi by lazy {
+        RemoteTariffsRepository(api = ApiClient.create<TariffsApi>())
     }
 }
