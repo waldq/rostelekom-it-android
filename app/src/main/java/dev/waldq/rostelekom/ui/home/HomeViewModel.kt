@@ -39,35 +39,7 @@ class HomeViewModel(
     fun load() {
         viewModelScope.launch {
             try {
-                val user = userRepository.getProfile()
-                val greeting = "Добрый день, ${user.firstName}"
-                try {
-                    val account = userRepository.getMyAccount()
-                    val transactions = userRepository.getMyTransactions() // транзакции для отображения
-                    _uiState.value = HomeUiState.Content(
-                        depositeValue = "",
-                        showDeposite = false,
-                        selectedItem = 0,
-                        greeting = greeting,
-                        balance = account.balance.toDouble(),
-                        accountNumber = "№ ${account.number.chunked(4).joinToString(" ")}",
-                        status = account.status,
-                        transactions = transactions.content.map {
-                            TransactionUi(
-                                id = it.id,
-                                title = it.type.title,
-                                date = toRuDate(it.createdAt),
-                                amount = it.amount.toPlainString(),
-                                isIncome = it.type != TransactionType.CHARGE,
-                            )
-                        }.take(3),
-                    )
-                } catch (e: ApiException) {
-                    if (e.statusCode == 404) {   // у нового юзера счёта ещё нет, это не ошибка
-                        _uiState.value =
-                            HomeUiState.NoAccounts(greeting = greeting)
-                    } else throw e
-                }
+                fillUiState()
             } catch (e: ApiException) {
                 _uiState.value =
                     if (e.statusCode == 401) HomeUiState.SessionExpired else HomeUiState.Error(e.message)
@@ -75,6 +47,38 @@ class HomeViewModel(
 
 
 
+        }
+    }
+
+    suspend fun fillUiState() {
+        val user = userRepository.getProfile()
+        val greeting = "Добрый день, ${user.firstName}"
+        try {
+            val account = userRepository.getMyAccount()
+            val transactions = userRepository.getMyTransactions() // транзакции для отображения
+            _uiState.value = HomeUiState.Content(
+                depositeValue = "",
+                showDeposite = false,
+                selectedItem = 0,
+                greeting = greeting,
+                balance = account.balance.toDouble(),
+                accountNumber = "№ ${account.number.chunked(4).joinToString(" ")}",
+                status = account.status,
+                transactions = transactions.content.map {
+                    TransactionUi(
+                        id = it.id,
+                        title = it.type.title,
+                        date = toRuDate(it.createdAt),
+                        amount = it.amount.toPlainString(),
+                        isIncome = it.type != TransactionType.CHARGE,
+                    )
+                }.take(3),
+            )
+        } catch (e: ApiException) {
+            if (e.statusCode == 404) {   // у нового юзера счёта ещё нет, это не ошибка
+                _uiState.value =
+                    HomeUiState.NoAccounts(greeting = greeting)
+            } else throw e
         }
     }
 
