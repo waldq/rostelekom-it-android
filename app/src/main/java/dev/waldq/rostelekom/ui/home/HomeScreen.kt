@@ -32,9 +32,15 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +65,8 @@ import dev.waldq.rostelekom.ui.theme.White
 import java.util.Locale
 import androidx.core.net.toUri
 import dev.waldq.rostelekom.ui.theme.TransactionsCardColor
+import kotlinx.coroutines.launch
+import kotlin.uuid.Uuid
 
 /**
  * Главный экран. Сам создаёт ViewModel, поэтому в навигации ничего менять не нужно.
@@ -72,114 +80,136 @@ fun HomeScreen(
     onChangeShowDeposit: () -> Unit,
     onUpdateDepositValue: (String) -> Unit,
     onPay: (String) -> Unit,
+    onRefresh: suspend () -> Unit,
     ) {
-    Scaffold { innerPadding ->
-        if (content.showDeposite) {
-            ModalBottomSheet(
-                onDismissRequest = onChangeShowDeposit,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(start = 20.dp, end = 20.dp, bottom = 24.dp)
-                        .imePadding(), // чтобы клавиатура не закрывала кнопку
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        state = rememberPullToRefreshState(),
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                try {
+                    onRefresh()
+                } finally {
+                    isRefreshing = false
+                }
+            }
+        }
+    ) {
+        Scaffold { innerPadding ->
+            if (content.showDeposite) {
+                ModalBottomSheet(
+                    onDismissRequest = onChangeShowDeposit,
                 ) {
-                    Text(
-                        text = "Пополнить баланс",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    Text(
-                        text = "Деньги поступят на лицевой счёт сразу после подтверждения.",
-                        modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-
-                    OutlinedTextField(
-                        value = content.depositeValue, //String.format(Locale("ru", "RU"), "%,.2f ₽", content.depositeValue),
-                        onValueChange = onUpdateDepositValue,
-                        visualTransformation = AmountVisualTransformation,
-                        modifier = Modifier.fillMaxWidth(),
-                        label = {Text("Сумма")},
-                        suffix = { Text("₽") },
-                        textStyle = MaterialTheme.typography.titleLarge,
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    )
-
-                    Row(
-                        modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    Column(
+                        modifier = Modifier
+                            .padding(start = 20.dp, end = 20.dp, bottom = 24.dp)
+                            .imePadding(), // чтобы клавиатура не закрывала кнопку
                     ) {
-                        listOf(100.0 to "+100 ₽", 500.0 to "+500 ₽", 1000.0 to "+1 000 ₽").forEach { (value, label) ->
-                            Button(
-                                onClick = { onUpdateDepositValue((value + content.depositeAmount).toString()) }
-                            ) {
-                                Text(label)
+                        Text(
+                            text = "Пополнить баланс",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Text(
+                            text = "Деньги поступят на лицевой счёт сразу после подтверждения.",
+                            modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+
+                        OutlinedTextField(
+                            value = content.depositeValue, //String.format(Locale("ru", "RU"), "%,.2f ₽", content.depositeValue),
+                            onValueChange = onUpdateDepositValue,
+                            visualTransformation = AmountVisualTransformation,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Сумма") },
+                            suffix = { Text("₽") },
+                            textStyle = MaterialTheme.typography.titleLarge,
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        )
+
+                        Row(
+                            modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            listOf(
+                                100.0 to "+100 ₽",
+                                500.0 to "+500 ₽",
+                                1000.0 to "+1 000 ₽"
+                            ).forEach { (value, label) ->
+                                Button(
+                                    onClick = { onUpdateDepositValue((value + content.depositeAmount).toString()) }
+                                ) {
+                                    Text(label)
+                                }
                             }
+                        }
+
+                        Button(
+                            onClick = {
+                                onPay(content.depositeValue)
+                                onUpdateDepositValue(("0.0"))
+                                onChangeShowDeposit()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            enabled = content.depositeAmount > 1e-9,
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                        ) {
+                            Text(if (content.depositeAmount > 1e-9) "Пополнить на ${content.depositeValue}" else "Введите сумму пополнения")
                         }
                     }
 
-                    Button(
-                        onClick = {
-                            onPay(content.depositeValue)
-                            onUpdateDepositValue(("0.0"))
-                            onChangeShowDeposit()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        enabled = content.depositeAmount > 1e-9,
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                    ) {
-                        Text(if (content.depositeAmount > 1e-9) "Пополнить на ${content.depositeValue}" else "Введите сумму пополнения")
+                }
+            }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .statusBarsPadding()
+                    .padding(innerPadding),
+                contentPadding = PaddingValues(13.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item {
+                    Column {
+                        Text(
+                            text = "ЛИЧНЫЙ КАБИНЕТ",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.6.sp),
+                        )
+                        Text(
+                            text = content.greeting,
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.headlineLarge,
+                        )
                     }
                 }
 
-            }
-        }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .statusBarsPadding()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(13.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            item {
-                Column {
-                    Text(
-                        text = "ЛИЧНЫЙ КАБИНЕТ",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.6.sp),
-                    )
-                    Text(
-                        text = content.greeting,
-                        modifier = Modifier.padding(top = 4.dp),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
+                item { BalanceCard(content) }
+
+                item {
+                    Button(
+                        onClick = onChangeShowDeposit,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                    ) {
+                        Text("Пополнить баланс")
+                    }
                 }
+
+                item { TransactionsCard(content.transactions) }
             }
-
-            item { BalanceCard(content) }
-
-            item {
-                Button(
-                    onClick = onChangeShowDeposit,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                ) {
-                    Text("Пополнить баланс")
-                }
-            }
-
-            item { TransactionsCard(content.transactions) }
         }
     }
 }
@@ -325,6 +355,7 @@ fun HomeRoute(onSessionExpired: () -> Unit) {
                     Log.e("Home", "не могу открыть $url")
                 }
             } },
+            onRefresh = viewModel::fillUiState,
         )
         is HomeUiState.NoAccounts -> CreateAccount(state, viewModel)
         is HomeUiState.SessionExpired -> LaunchedEffect(Unit) { onSessionExpired() }
@@ -528,6 +559,7 @@ private fun HomeContentPreview() {
             onChangeShowDeposit = {},
             onUpdateDepositValue = {},
             onPay = {},
+            onRefresh = {}
         )
     }
 }
