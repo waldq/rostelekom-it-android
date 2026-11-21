@@ -25,6 +25,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Rostelekomitandroid"
         android:name=".RostelekomApp">
+        <receiver
+            android:name=".notifications.NotificationReceiver"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

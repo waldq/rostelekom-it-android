@@ -1,6 +1,8 @@
 package dev.waldq.rostelekom.ui.home
 
 import dev.waldq.rostelekom.models.AccountStatus
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -26,6 +28,11 @@ sealed interface HomeUiState {
      * @property transactions последние операции, новые первыми.
      */
     data class Content(
+        val showDatePicker: Boolean,
+        val showTimePicker: Boolean,
+        val notificationDate: LocalDate?,
+        val notificationTime: LocalTime?,
+        val showDialog: Boolean,
         val depositeValue: String,
         val showDeposite: Boolean,
         val selectedItem: Int,

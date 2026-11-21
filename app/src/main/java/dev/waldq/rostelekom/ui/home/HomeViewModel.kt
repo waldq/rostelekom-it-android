@@ -12,12 +12,15 @@ import dev.waldq.rostelekom.models.AccountStatus
 import dev.waldq.rostelekom.models.CreatePaymentDto
 import dev.waldq.rostelekom.models.PaymentStatus
 import dev.waldq.rostelekom.models.TransactionType
+import dev.waldq.rostelekom.ui.history.HistoryUiState
 import dev.waldq.rostelekom.ui.home.TransactionUi.Companion.toRuDate
 import dev.waldq.rostelekom.validation.allowInputPaymentAmount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 import java.util.UUID
 
 class HomeViewModel(
@@ -45,6 +48,11 @@ class HomeViewModel(
                     val account = userRepository.getMyAccount()
                     val transactions = userRepository.getMyTransactions() // транзакции для отображения
                     _uiState.value = HomeUiState.Content(
+                        showDatePicker = false,
+                        showTimePicker = false,
+                        notificationDate = null,
+                        notificationTime = null,
+                        showDialog = false,
                         depositeValue = "",
                         showDeposite = false,
                         selectedItem = 0,
@@ -84,6 +92,11 @@ class HomeViewModel(
             val current = _uiState.value
             if (current is HomeUiState.NoAccounts)
                 _uiState.value = HomeUiState.Content(
+                    showDatePicker = false,
+                    showTimePicker = false,
+                    notificationDate = null,
+                    notificationTime = null,
+                    showDialog = false,
                     depositeValue = "",
                     showDeposite = false,
                     selectedItem = 0,
@@ -96,15 +109,45 @@ class HomeViewModel(
         }
     }
 
-    fun updateBalance(value: Double) {
-        viewModelScope.launch {
-            val account = userRepository.getMyAccount()
-            val current = _uiState.value
-            if (current is HomeUiState.Content && current.balance != null)
-                _uiState.value = current.copy(balance = account.balance.toDouble());
+    fun changeShowDialog(){
+        _uiState.update { state ->
+            if (state !is HomeUiState.Content) return@update state
+
+            state.copy(showDialog = !state.showDialog)
         }
     }
 
+    fun changeShowDatePicker(){
+        _uiState.update { state ->
+            if (state !is HomeUiState.Content) return@update state
+
+            state.copy(showDatePicker = !state.showDatePicker)
+        }
+    }
+
+    fun changeShowTimePicker(){
+        _uiState.update { state ->
+            if (state !is HomeUiState.Content) return@update state
+
+            state.copy(showTimePicker = !state.showTimePicker)
+        }
+    }
+
+    fun changeDate(date: LocalDate) {
+        _uiState.update { state ->
+            if (state !is HomeUiState.Content) return@update state
+
+            state.copy(notificationDate = date)
+        }
+    }
+
+    fun changeTime(time: LocalTime) {
+        _uiState.update { state ->
+            if (state !is HomeUiState.Content) return@update state
+
+            state.copy(notificationTime = time)
+        }
+    }
     fun updateDepositValue(value: String){
         if (!allowInputPaymentAmount(value)) return
         val current = _uiState.value

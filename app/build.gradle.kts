@@ -92,7 +92,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.work.runtime.ktx)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.kotlinx.serialization)
     implementation(libs.okhttp)
